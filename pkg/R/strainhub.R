@@ -23,7 +23,8 @@
 #' @import ape
 #' @import castor
 #' @import visNetwork
-#' @import hashmap
+# @import hashmap
+#' @import hash
 #' @import plyr
 #' @import network
 #' @import igraph

@@ -349,28 +349,13 @@ getMetadata <- function(fileName) {
 
 listStates <- function(treedata, metadata = NULL, treeType = "parsimonious"){
   if(treeType == "parsimonious"){
-    # dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work.
-    dataoriginal <- metadata
 
-    listofcolumns <- data.frame(`Index` = 1:length(colnames(dataoriginal)),
-                                `Column` = colnames(dataoriginal))
+    listofcolumns <- data.frame(`Index` = 1:length(colnames(metadata)),
+                                `Column` = colnames(metadata))
 
-    # listofcolumns <- as.list(dataoriginal)
-
-    # listofcolumns <- data.frame(`Index` = 1:length(names(as.list(dataoriginal))),
-    #                             `Column` = names(as.list(dataoriginal)))
   } else if(treeType == "bayesian"){
-    ## read annotated tree from Nexus file
-    # tree <- read.annotated.nexus(treeFileName) # Don't use
-    # tree <- treeio::read.beast(treeFileName)
+
     tree <- treedata
-
-    # ## ladderize the tree
-    # ladderized <- ladderize(tree)
-
-    ## for each edge (each edge is identified by a terminal node), we have:
-    # listofcolumns <- data.frame(`Column` = names(ladderized$annotations[[1]])) %>%
-    #   filter(!stringr::str_detect(Column, "_95%_HPD|_median|_range|.prob|.set|.rate"))
 
     listofcolumns <- data.frame(`Column` = names(tree@data)) %>%
       filter(!stringr::str_detect(Column, "_0.95_HPD|_median|_range|.prob|.set|.rate"))
@@ -378,11 +363,9 @@ listStates <- function(treedata, metadata = NULL, treeType = "parsimonious"){
     listofcolumns$`Index` <- 1:nrow(listofcolumns)
     listofcolumns <- listofcolumns[c("Index","Column")]
   } else if(treeType == "nj"){
-    # dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work.
-    dataoriginal <- metadata
 
-    listofcolumns <- data.frame(`Index` = 1:length(colnames(dataoriginal)),
-                                `Column` = colnames(dataoriginal))
+    listofcolumns <- data.frame(`Index` = 1:length(colnames(metadata)),
+                                `Column` = colnames(metadata))
   }
 
 
@@ -390,24 +373,16 @@ listStates <- function(treedata, metadata = NULL, treeType = "parsimonious"){
 }
 
 getUsableColumns <- function(treedata, metadata){
-  # nexusTree2 <- read.tree(treeFileName) #imports file in newick format instead of nexus.
-  nexusTree2 <- treedata
 
-  # dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work.
-  dataoriginal <- metadata
-
-  sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
+  sortingtable <- as.data.frame(treedata$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
   sortingtable <- tibble::rowid_to_column(sortingtable, "N_ID") ## Was "ID"
   names(sortingtable)[2] <- "Accession"
-  sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
+  sortingdata <- merge(metadata, sortingtable, by = "Accession")
   data <- sortingdata[order(sortingdata$N_ID),] ## Was "ID"
 
-  # listofcolumns <- as.list(dataoriginal)
   listofcolumns <- as.list(data)
   columnaccessions <- as.list(data)
   accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
-  # selectedcolumn <- as.numeric(as.factor(listofcolumns[[columnSelection]])) #transforms metadata state column from Factor into numeric
-  # names(selectedcolumn) <- accessioncharacter # assign accession ID reference to the variable selected
 
   distinctvalsbycolumn <- data.frame(t(apply(data, 2, function(x) length(unique(x))))) # Get number of unique values by column.
   output <- c(names(distinctvalsbycolumn[which(distinctvalsbycolumn>1)])) #Return vector of usable columns
@@ -444,6 +419,27 @@ test_treetips_vs_accessions <- function(treedata, metadata, treeType = "parsimon
 }
 
 #############################
+## HASH FUNCTIONS
+hash_insert <- function(hm, key, value) {
+  if (is.null(key)) {
+    stop("Argument 'key' must not be null")
+  }
+  hm[[as.character(key)]] <- value
+  return(hm)
+}
+
+hash_find <- function(hm, key) {
+  if (is.null(key)) {
+    stop("Argument 'key' must not be null")
+  }
+  if (is.null(hm[[as.character(key)]])) {
+    stop("Key not found")
+  }
+  return(hm[[as.character(key)]])
+}
+#############################
+
+#############################
 #' @name makeTransNet
 #' @title makeTransNet
 #' @description Creates the network graph object. Use print(graph) to display.
@@ -477,30 +473,13 @@ test_treetips_vs_accessions <- function(treedata, metadata, treeType = "parsimon
 makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityMetric, threshold = 0.9, threshold2 = 0.9, bootstrapValue = NULL, treeType = "parsimonious", rootSelection = NULL, metricsOutputFile = "StrainHub_metrics.csv", as.json = FALSE){
 
   if(treeType == "parsimonious"){
-    # fileName <- readline(prompt = "Type in the full path to the nexus file you want to read in: ")
-    # nexusTree2 <- read.nexus(fileName)
-    # nexusData <- getMetadata(fileName)
 
-    #charIndex <- readline(prompt ="Type the number equivalent to the character state index of the nexus file you want to build the network from: ")
-    # if (charIndex < 1){
-    #   cat("ERROR: The character state index must be > 0.")
-    # } else{
-    #   characterIndex <- as.numeric(charIndex) # Transforms the input from string to numeric so it can be loaded on metadataRef
-    # }
-
-    # nexusTree2 <- read.tree(treeFileName) #imports file in newick format instead of nexus.
-    nexusTree2 <- treedata
-
-    # dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work.
-    dataoriginal <- metadata
-
-    sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
+    sortingtable <- as.data.frame(treedata$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
     sortingtable <- tibble::rowid_to_column(sortingtable, "N_ID") ## Was "ID"
     names(sortingtable)[2] <- "Accession"
-    sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
+    sortingdata <- merge(metadata, sortingtable, by = "Accession")
     data <- sortingdata[order(sortingdata$N_ID),] ## Was "ID"
 
-    # listofcolumns <- as.list(dataoriginal)
     listofcolumns <- as.list(data)
     columnaccessions <- as.list(data)
     accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
@@ -511,32 +490,30 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     characterlabels <- sort(as.character(characterlabels1)) #sort and create list of characters from previous vector - has to sort to match the order from the $country as when it becomes numeric is transformed to numbers in alphabetical order.
 
 
-    rootedTree <- nexusTree2
-
-    # metadataRef <- nexusData$charMatrix[,characterIndex] # CharacterIndex change the number of the character state index of the nexus file you want to use
-    # ref2 <- attr(metadataRef, "names")
+    rootedTree <- treedata
 
     # Builds a hashmap using the leaf node strings as keys and the character states as values
-    # H <- hashmap(ref2, metadataRef)
-    H <- hashmap::hashmap(accessioncharacter, selectedcolumn)
+    # H <- hashmap::hashmap(accessioncharacter, selectedcolumn)
 
-    # numCharStates <- length(nexusData$characterLabels[[characterIndex]]) # Change to the number above
-    # ancestralStates = asr_max_parsimony(rootedTree,
-    #                                     metadataRef,
-    #                                     numCharStates)
 
     numCharStates <- length(characterlabels) ##### change to the number above
 
     ancestralStates = asr_max_parsimony(rootedTree, selectedcolumn, numCharStates)
 
     # Deletes all keys and values from the hashmap
-    H$clear()
+    # H$clear()
 
     # Rebuilds hashmap using sequential numbers 1 through the number of leaf nodes as the key/index
     #and using the integer values found in metadataStates as values. It essentially builds a hashmap
     #of the leaf nodes of the tree: their index and their value.
+    # for(i in 1:length(selectedcolumn)) {
+    #   H$insert(i, selectedcolumn[i])
+    # }
+
+    hm <- hash()
+
     for(i in 1:length(selectedcolumn)) {
-      H$insert(i, selectedcolumn[i])
+      hm <- hash_insert(hm, i, selectedcolumn[i])
     }
 
     # Loop through the inner nodes of the phylogenetic tree and assign the most likely character state
@@ -548,14 +525,23 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     numCharacterStates <- length(ancestralStates$ancestral_likelihoods[1,])
     counter <- c() #initializes counter vector
 
-    for (i in innerNodeIndices) # 474:945  # 473 leaf nodes + 472 inner nodes = 945 total;
-    {
+    # for (i in innerNodeIndices) # 474:945  # 473 leaf nodes + 472 inner nodes = 945 total;
+    # {
+    #   counter <- ancestralStates$ancestral_likelihoods[i - numLeaves,] #numeric vector of character state
+    #   # probabilities for inner node of index i
+    #   H$insert(i,
+    #            match(max(counter),
+    #                  counter)) #enters a new key-value pair
+    #   #(inner node i -> most likely character state)
+    # }
+
+    for (i in innerNodeIndices){
+
       counter <- ancestralStates$ancestral_likelihoods[i - numLeaves,] #numeric vector of character state
       # probabilities for inner node of index i
-      H$insert(i,
-               match(max(counter),
-                     counter)) #enters a new key-value pair
-      #(inner node i -> most likely character state)
+
+      #enters a new key-value pair
+      hm <- hash_insert(hm, i, match(max(counter), counter))
     }
 
     #after the previous for loop executes, we now have an ASR of the phylogenetic tree given in the beginning.
@@ -566,18 +552,35 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     #add the character states to their repspective vector
     #(diedge tail == sourceList, diedge head == targetList)
 
-    for(row in 1:nrow(rootedTree$edge))
-    {
+    # for(row in 1:nrow(rootedTree$edge))
+    # {
+    #   nextEdge <- rootedTree$edge[row,]
+    #   edgeStates <- c(H$find(nextEdge[1]),
+    #                   H$find(nextEdge[2]))
+    #
+    #   if (edgeStates[1] != edgeStates[2])
+    #   {
+    #     sourceList <- c(sourceList,
+    #                     edgeStates[1])
+    #     targetList <- c(targetList,
+    #                     edgeStates[2])
+    #   }
+    # }
+
+    for(row in 1:nrow(rootedTree$edge)){
+
       nextEdge <- rootedTree$edge[row,]
-      edgeStates <- c(H$find(nextEdge[1]),
-                      H$find(nextEdge[2]))
+
+      edgeStates <- c(hash_find(hm, nextEdge[1]),
+                      hash_find(hm, nextEdge[2]))
 
       if (edgeStates[1] != edgeStates[2])
       {
-        sourceList <- c(sourceList,
-                        edgeStates[1])
-        targetList <- c(targetList,
-                        edgeStates[2])
+        sourceList <- unname(c(sourceList,
+                               edgeStates[1]))
+        targetList <- unname(c(targetList,
+                               edgeStates[2]))
+
       }
     }
 
@@ -603,20 +606,17 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
                                       directed = T,
                                       vertices = nodes)
   } else if(treeType == "bayesian"){
-    ## read annotated tree from Nexus file
-    # tree <- treeio::read.beast(treeFileName)
-    tree <- treedata
 
-    state <- tree@data[[columnSelection]]
-    stateprob <- tree@data[[paste0(columnSelection,".prob")]]
-    nodeprob <- tree@data[['posterior']] ## Extracts posterior
+    state <- treedata@data[[columnSelection]]
+    stateprob <- treedata@data[[paste0(columnSelection,".prob")]]
+    nodeprob <- treedata@data[['posterior']] ## Extracts posterior
     nodeprobnoNA <- nodeprob
     nodeprobnoNA[is.na(nodeprob)] <- 1 ## replaces NA of terminal nodes with probability = 1 to avoid being filtered out.
 
-    index <- as.numeric(tree@data$node)
+    index <- as.numeric(treedata@data$node)
 
     ## Tree edges - relationship between nodes
-    tree.edges = tree@phylo$edge
+    tree.edges = treedata@phylo$edge
 
     ## Rename edges with state (https://csgillespie.github.io/efficientR/dplyr.html / https://r4ds.had.co.nz/ )
 
@@ -693,20 +693,14 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
                                       vertices = nodes)
   } else if(treeType == "nj"){
 
-    # nexusTree2 <- make_nj_tree(dna = treedata, accession = rootSelection) # Don't Use
-    nexusTree2 <- NJ_build_collapse(dna = treedata, accession = rootSelection, bootstrapValue = bootstrapValue)
-    # nexusTree2 <- treedata
+    built_tree <- NJ_build_collapse(dna = treedata, accession = rootSelection, bootstrapValue = bootstrapValue)
 
-    # dataoriginal <- readr::read_csv(csvFileName, col_names = TRUE) #imports csv metadata file. It has to have header and ID column has to be the first and labeled "Accession" in order for script to work.
-    dataoriginal <- metadata
-
-    sortingtable <- as.data.frame(nexusTree2$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
+    sortingtable <- as.data.frame(built_tree$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
     sortingtable <- tibble::rowid_to_column(sortingtable, "N_ID") ## Was "ID"
     names(sortingtable)[2] <- "Accession"
-    sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
+    sortingdata <- merge(metadata, sortingtable, by = "Accession")
     data <- sortingdata[order(sortingdata$N_ID),] ## Was "ID"
 
-    # listofcolumns <- as.list(dataoriginal)
     listofcolumns <- as.list(data)
     columnaccessions <- as.list(data)
     accessioncharacter <- as.character(columnaccessions$Accession) #transforms accession from Factor into character
@@ -717,32 +711,29 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     characterlabels <- sort(as.character(characterlabels1)) #sort and create list of characters from previous vector - has to sort to match the order from the $country as when it becomes numeric is transformed to numbers in alphabetical order.
 
 
-    rootedTree <- nexusTree2
-
-    # metadataRef <- nexusData$charMatrix[,characterIndex] # CharacterIndex change the number of the character state index of the nexus file you want to use
-    # ref2 <- attr(metadataRef, "names")
+    rootedTree <- built_tree
 
     # Builds a hashmap using the leaf node strings as keys and the character states as values
-    # H <- hashmap(ref2, metadataRef)
-    H <- hashmap::hashmap(accessioncharacter, selectedcolumn)
-
-    # numCharStates <- length(nexusData$characterLabels[[characterIndex]]) # Change to the number above
-    # ancestralStates = asr_max_parsimony(rootedTree,
-    #                                     metadataRef,
-    #                                     numCharStates)
+    # H <- hashmap::hashmap(accessioncharacter, selectedcolumn)
 
     numCharStates <- length(characterlabels) ##### change to the number above
 
     ancestralStates = asr_max_parsimony(rootedTree, selectedcolumn, numCharStates)
 
     # Deletes all keys and values from the hashmap
-    H$clear()
+    # H$clear()
 
     # Rebuilds hashmap using sequential numbers 1 through the number of leaf nodes as the key/index
     #and using the integer values found in metadataStates as values. It essentially builds a hashmap
     #of the leaf nodes of the tree: their index and their value.
+    # for(i in 1:length(selectedcolumn)) {
+    #   H$insert(i, selectedcolumn[i])
+    # }
+
+    hm <- hash()
+
     for(i in 1:length(selectedcolumn)) {
-      H$insert(i, selectedcolumn[i])
+      hm <- hash_insert(hm, i, selectedcolumn[i])
     }
 
     # Loop through the inner nodes of the phylogenetic tree and assign the most likely character state
@@ -754,14 +745,23 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     numCharacterStates <- length(ancestralStates$ancestral_likelihoods[1,])
     counter <- c() #initializes counter vector
 
-    for (i in innerNodeIndices) # 474:945  # 473 leaf nodes + 472 inner nodes = 945 total;
-    {
+    # for (i in innerNodeIndices) # 474:945  # 473 leaf nodes + 472 inner nodes = 945 total;
+    # {
+    #   counter <- ancestralStates$ancestral_likelihoods[i - numLeaves,] #numeric vector of character state
+    #   # probabilities for inner node of index i
+    #   H$insert(i,
+    #            match(max(counter),
+    #                  counter)) #enters a new key-value pair
+    #   #(inner node i -> most likely character state)
+    # }
+
+    for (i in innerNodeIndices){
+
       counter <- ancestralStates$ancestral_likelihoods[i - numLeaves,] #numeric vector of character state
       # probabilities for inner node of index i
-      H$insert(i,
-               match(max(counter),
-                     counter)) #enters a new key-value pair
-      #(inner node i -> most likely character state)
+
+      #enters a new key-value pair
+      hm <- hash_insert(hm, i, match(max(counter), counter))
     }
 
     #after the previous for loop executes, we now have an ASR of the phylogenetic tree given in the beginning.
@@ -772,23 +772,40 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     #add the character states to their repspective vector
     #(diedge tail == sourceList, diedge head == targetList)
 
-    for(row in 1:nrow(rootedTree$edge))
-    {
+    # for(row in 1:nrow(rootedTree$edge))
+    # {
+    #   nextEdge <- rootedTree$edge[row,]
+    #   edgeStates <- c(H$find(nextEdge[1]),
+    #                   H$find(nextEdge[2]))
+    #
+    #   if (edgeStates[1] != edgeStates[2])
+    #   {
+    #     sourceList <- c(sourceList,
+    #                     edgeStates[1])
+    #     targetList <- c(targetList,
+    #                     edgeStates[2])
+    #   }
+    # }
+
+    for(row in 1:nrow(rootedTree$edge)){
+
       nextEdge <- rootedTree$edge[row,]
-      edgeStates <- c(H$find(nextEdge[1]),
-                      H$find(nextEdge[2]))
+
+      edgeStates <- c(hash_find(hm, nextEdge[1]),
+                      hash_find(hm, nextEdge[2]))
 
       if (edgeStates[1] != edgeStates[2])
       {
-        sourceList <- c(sourceList,
-                        edgeStates[1])
-        targetList <- c(targetList,
-                        edgeStates[2])
+        sourceList <- unname(c(sourceList,
+                               edgeStates[1]))
+        targetList <- unname(c(targetList,
+                               edgeStates[2]))
+
       }
     }
 
     # This creates a table (in the form of a data frame) of the state changes that occur
-    #in the phylogenetic tree;
+    # in the phylogenetic tree;
     dat <- data.frame(from = sourceList,
                       to = targetList)
     #counts the frequency of a specific state change occurring
@@ -796,7 +813,6 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
     names(edges)[names(edges) == "freq"] <- "value"
 
     # Extract the selected metadata state label from the nexusData
-    # metastates <- nexusData$characterLabels[[characterIndex]]
     metastates <- characterlabels
 
     nodes <- data.frame(id = 1:length(metastates),
@@ -1025,24 +1041,6 @@ makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityM
   # return(graph %>% visExport(type = "png", background = "#00FFFFFF", style = 'class = "btn-outline-primary"'))
 }
 
-# make_nj_tree <- function(dna, accession){
-#   #values <- read.dna(filePath, format="fasta")
-#
-#   values_phyDat <- phyDat(dna, type="DNA", levels = NULL)
-#   mt <- modelTest(values_phyDat)
-#   reducedmt <- mt[c(1,5),c(1,3)] #extracts rows 1 and 5 from modeltest, columns 1 and 3
-#   maxmt <- reducedmt[which.max(reducedmt$logLik),]
-#   dna_dist <- dist.ml(values_phyDat, model=maxmt$Model)
-#   values_NJ <- bionj(dna_dist)
-#   plot(values_NJ, main="Neighbor Joining", cex=.6)
-#   names(values_phyDat) #ID names for outgroup user selection down here:
-#   tre2 <- root(values_NJ, outgroup = accession, resolve.root = TRUE)
-#   tre2 <- ladderize(tre2)
-#   plot(tre2, main="Neighbor Joining ladderized and rooted", cex=.6)
-#   nexusTree2 <- tre2
-#
-#   return(nexusTree2)
-# }
 
 # Neighbor Joining Tree Builder #
 ## Function which creates distance matrix from alignment, builds NJ tree, performs bootstrap analysis, collapses weakly supported nodes - Requires ape, phangorn, and seqinr libraries ##
@@ -1057,14 +1055,9 @@ NJ_build_collapse <- function(dna, accession, bootstrapValue) {
   reducedmt <- mt[c(1,5),c(1,3)] #extracts rows 1 and 5 from modeltest, columns 1 and 3
   maxmt <- reducedmt[which.max(reducedmt$logLik),]
   dna_dist <- dist.ml(aln_phyDat, model=maxmt$Model)
-  # dna_dist <- dist.dna(dna, model = maxmt$Model)
 
   #Building NJ tree from distance matrix
   aln_NJ <- bionj(dna_dist)
-
-  # myBoots <- boot.phylo(aln_NJ, dna, function(e)
-  #   root(nj(dist.dna(e, model=maxmt$Model)),accession)) #This roots on first sequence in alignment, can substitute with accession number
-  # myBoots
 
   myBoots <- ape::boot.phylo(aln_NJ, dna, function(e) # Run bootstrap
     # root(nj(dist.dna(e, model=maxmt$Model)), accession))
@@ -1085,16 +1078,14 @@ NJ_build_collapse <- function(dna, accession, bootstrapValue) {
 
   collapsedTree <- ladderize(collapsedTree)
   finaltree <- ape::root.phylo(collapsedTree, outgroup = accession, resolve.root = TRUE)
-  # finaltree <- ape::root(collapsedTree, outgroup = accession, resolve.root = TRUE)
-  # rootedTree <<- ladderize(finaltree)
+
   rootedTree <- ladderize(finaltree)
   return(rootedTree)
-  # return(aln_NJ)
 }
 
 # Tree and metadata parser #
 parse_metaandtree <- function(treePath, metadata){
-  # rootedTree <<- read.tree(treePath) #imports file in newick format instead of nexus.
+
   rootedTree <- treePath
 
   #\
@@ -1107,13 +1098,12 @@ parse_metaandtree <- function(treePath, metadata){
   #      $tip.label - a character vector whose elements are the character string that
   #        identifies a leaf node on the phylogenetic tree;
   #/
-  # dataoriginal = read.csv(metadataPath, header = TRUE) # Imports csv metadata file. It has to have header and ID column has to be the first and labeled "accession" in order for script to work.
-  dataoriginal <- metadata
+
 
   sortingtable <- as.data.frame(rootedTree$tip.label) # Takes Tip Label information from Newick tree and transforms into a table, add ID to it and basically reorders the CSV metadata frame to match the Newick file.
   sortingtable <- tibble::rowid_to_column(sortingtable, "ID")
   names(sortingtable)[2] <- "Accession"
-  sortingdata <- merge(dataoriginal, sortingtable, by = "Accession")
+  sortingdata <- merge(metadata, sortingtable, by = "Accession")
   data <- sortingdata[order(sortingdata$ID),]
   listofcolumns <- as.list(data)
   accessioncharacter <- as.character(listofcolumns$Accession) # Transforms accession from Factor into character
@@ -1132,7 +1122,7 @@ parse_metaandtree <- function(treePath, metadata){
 parsimony_ancestral_reconstruction <- function(accessioncharacter, country, characterlabels, rootedTree) {
 
   #builds a hashmap using the leaf node strings as keys and the character states as values
-  H <- hashmap::hashmap(accessioncharacter, country)
+  # H <- hashmap::hashmap(accessioncharacter, country)
 
   # The asr_max_parsimony() function requires a numeric vector that lists the character states
   #   of the leaf nodes in sequence as one of its parameter arguments. The following for loop
@@ -1162,13 +1152,17 @@ parsimony_ancestral_reconstruction <- function(accessioncharacter, country, char
   ancestralStates = asr_max_parsimony(rootedTree, country, numCharStates)
 
   # Deletes all keys and values from the hashmap
-  H$clear()
+  # H$clear()
 
   # Rebuilds hashmap using sequential numbers 1 through the number of leaf nodes as the key/index
   #and using the integer values found in metadataStates as values. It essentially builds a hashmap
   #of the leaf nodes of the tree: their index and their value.
-  for(i in 1:length(country)) {
-    H$insert(i, country[i])
+  # for(i in 1:length(country)) {
+  #   H$insert(i, country[i])
+  # }
+
+  for(i in 1:length(selectedcolumn)) {
+    hm <- hash_insert(hm, i, selectedcolumn[i])
   }
 
   # Loop through the inner nodes of the phylogenetic tree and assign the most likely character state
@@ -1179,12 +1173,22 @@ parsimony_ancestral_reconstruction <- function(accessioncharacter, country, char
   innerNodeIndices <- (numLeaves+1):totalTreeNodes
   numCharacterStates <- length(ancestralStates$ancestral_likelihoods[1,])
   counter <- c() #initializes counter vector
-  for (i in innerNodeIndices) # 474:945  # 473 leaf nodes + 472 inner nodes = 945 total;
-  {
+
+  # for (i in innerNodeIndices) # 474:945  # 473 leaf nodes + 472 inner nodes = 945 total;
+  # {
+  #   counter <- ancestralStates$ancestral_likelihoods[i - numLeaves,] #numeric vector of character state
+  #   # probabilities for inner node of index i
+  #   H$insert(i, match(max(counter), counter)) #enters a new key-value pair
+  #   #(inner node i -> most likely character state)
+  # }
+
+  for (i in innerNodeIndices){
+
     counter <- ancestralStates$ancestral_likelihoods[i - numLeaves,] #numeric vector of character state
     # probabilities for inner node of index i
-    H$insert(i, match(max(counter), counter)) #enters a new key-value pair
-    #(inner node i -> most likely character state)
+
+    #enters a new key-value pair
+    hm <- hash_insert(hm, i, match(max(counter), counter))
   }
 
   #after the previous for loop executes, we now have an ASR of the phylogenetic tree given in the beginning.
@@ -1194,22 +1198,40 @@ parsimony_ancestral_reconstruction <- function(accessioncharacter, country, char
   #walk through each edge in the phylogenetic tree. if there's a state change between the two nodes,
   #add the character states to their respective vector
   #(diedge tail == sourceList, diedge head == targetList)
-  rootedTree <- rootedTree
 
-  for(row in 1:nrow(rootedTree$edge))
-  {
+  # for(row in 1:nrow(rootedTree$edge))
+  # {
+  #   nextEdge <- rootedTree$edge[row,]
+  #   edgeStates <- c(H$find(nextEdge[1]), H$find(nextEdge[2]))
+  #   if (edgeStates[1] != edgeStates[2])
+  #   {
+  #     sourceList <- c(sourceList, edgeStates[1])
+  #     targetList <- c(targetList, edgeStates[2])
+  #   }
+  # }
+
+  for(row in 1:nrow(rootedTree$edge)){
+
     nextEdge <- rootedTree$edge[row,]
-    edgeStates <- c(H$find(nextEdge[1]), H$find(nextEdge[2]))
+
+    edgeStates <- c(hash_find(hm, nextEdge[1]),
+                    hash_find(hm, nextEdge[2]))
+
     if (edgeStates[1] != edgeStates[2])
     {
-      sourceList <- c(sourceList, edgeStates[1])
-      targetList <- c(targetList, edgeStates[2])
+      sourceList <- unname(c(sourceList,
+                             edgeStates[1]))
+      targetList <- unname(c(targetList,
+                             edgeStates[2]))
+
     }
   }
+
 
   # This creates a table (in the form of a data frame) of the state changes that occur
   #in the phylogenetic tree;
   dat <- data.frame(from = sourceList, to = targetList)
+
   #counts the frequency of a specific state change occurring
   #edges_file <<- plyr::count(dat)
   edges_file <- plyr::count(dat)
