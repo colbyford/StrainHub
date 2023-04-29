@@ -47,7 +47,8 @@ library(strainhub)
 
 ## Load in last
 library(castor)
-library(hashmap)
+# library(hashmap)
+library(hash)
 library(plyr)
 library(dplyr)
 library(data.table)
@@ -113,7 +114,7 @@ ui <- tagList(
                width = 3,
                selectInput("tree_input_type",
                            label = "1. Transmission Network Method",
-                           choices = c("Parsimony", "BEAST Phylogeography", "Create Neighbor-Joining Tree", "Upload StrainHub RDS file")),
+                           choices = c("Parsimony Ancestral Reconstruction", "BEAST Phylogeography", "Create Neighbor-Joining Tree", "Upload StrainHub RDS file")),
                uiOutput("inputtree"),
                uiOutput("bootstrapval"),
                div(uiOutput("metadatabuilderparams"), style="float:right"),
@@ -352,7 +353,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = fileInput('treefile',
+           "Parsimony Ancestral Reconstruction" = fileInput('treefile',
                                    label = '2. Choose your Tree File',
                                    accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick', '.nwk')),
            "BEAST Phylogeography" = fileInput('treefile',
@@ -394,7 +395,7 @@ server <- function(input, output, session) {
       return()
 
     switch(input$tree_input_type,
-           "Parsimony" = fileInput('csvfile',
+           "Parsimony Ancestral Reconstruction" = fileInput('csvfile',
                                    label = '3a. Choose your Metadata File',
                                    accept = c('text/csv', 'text/plain', '.csv', '.txt')),
            "BEAST Phylogeography" = sliderInput("threshold",
@@ -416,7 +417,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = actionButton("metadatabuilder",
+           "Parsimony Ancestral Reconstruction" = actionButton("metadatabuilder",
                                       label = "Edit Metadata",
                                       icon = icon("wrench", lib = "font-awesome"),
                                       class = "btn-secondary",
@@ -487,7 +488,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = actionButton("geodatabuilder",
+           "Parsimony Ancestral Reconstruction" = actionButton("geodatabuilder",
                                       label = "Edit Geodata",
                                       icon = icon("wrench", lib = "font-awesome"),
                                       class = "btn-secondary",
@@ -572,7 +573,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = fileInput('geodatafile',
+           "Parsimony Ancestral Reconstruction" = fileInput('geodatafile',
                                    label = '3b. Choose your Geodata File',
                                    accept = c('text/csv', 'text/plain', '.csv', '.txt')),
            
@@ -593,7 +594,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = actionButton("getlistbutton", label = "4a. List States", class = "btn-primary"),
+           "Parsimony Ancestral Reconstruction" = actionButton("getlistbutton", label = "4a. List States", class = "btn-primary"),
            
            "BEAST Phylogeography" = actionButton("getlistbutton", label = "4a. List States", class = "btn-primary"),
            
@@ -628,7 +629,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = selectInput("columnselection", "4b. Choose your State", choices = availablecolumns()$`Column`),
+           "Parsimony Ancestral Reconstruction" = selectInput("columnselection", "4b. Choose your State", choices = availablecolumns()$`Column`),
            
            "BEAST Phylogeography" = selectInput("columnselection", "4b. Choose your State", choices = availablecolumns()$`Column`),
            
@@ -643,7 +644,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-         "Parsimony" = selectInput("metricradio",
+         "Parsimony Ancestral Reconstruction" = selectInput("metricradio",
                                    label ="5. Pick your Centrality Metric",
                                    choices = list("Indegree" = 1,
                                                   "Outdegree" = 2,
@@ -684,7 +685,7 @@ server <- function(input, output, session) {
       return()
     
     switch(input$tree_input_type,
-           "Parsimony" = actionButton("plotbutton", label = "6. Generate Network", class = "btn-primary"),
+           "Parsimony Ancestral Reconstruction" = actionButton("plotbutton", label = "6. Generate Network", class = "btn-primary"),
            
            "BEAST Phylogeography" = actionButton("plotbutton", label = "6. Generate Network", class = "btn-primary"),
            
@@ -725,7 +726,7 @@ server <- function(input, output, session) {
   
   ## Load in tree data
   treedata <- eventReactive(input$treefile, {
-    if(input$tree_input_type == "Parsimony"){
+    if(input$tree_input_type == "Parsimony Ancestral Reconstruction"){
       ape::read.tree(input$treefile$datapath)
     }
     else if(input$tree_input_type == "BEAST Phylogeography"){
@@ -755,7 +756,7 @@ server <- function(input, output, session) {
   
   ## Network Viz
   graph <- eventReactive(input$plotbutton, {
-    if(input$tree_input_type == "Parsimony"){
+    if(input$tree_input_type == "Parsimony Ancestral Reconstruction"){
       validate(
         need(input$treefile$datapath != "", "\n2. Please upload a tree file."),
         need(input$csvfile$datapath != "",  "\n3a. Please upload the accompanying metadata file."),
@@ -1026,7 +1027,7 @@ server <- function(input, output, session) {
   output$treepreview <- eventReactive(input$plotbutton, {
     output$treepreview <- renderPlotly({
       # df <- read.csv(input$treefile$datapath)
-      if (input$tree_input_type == "Parsimony"){
+      if (input$tree_input_type == "Parsimony Ancestral Reconstruction"){
         # treepreview <- ape::read.tree(input$treefile$datapath)
         treepreview <- treedata()
         #return(treepreview)
@@ -1113,7 +1114,7 @@ server <- function(input, output, session) {
   
   ## Map Output
   output$mapoutput <- eventReactive(input$plotbutton, {
-    if (input$tree_input_type == "Parsimony"){
+    if (input$tree_input_type == "Parsimony Ancestral Reconstruction"){
       validate(
         need(input$treefile != "", "\n1. Please upload a tree file."),
         need(input$csvfile != "",  "\n3a. Please upload the accompanying metadata file."),
