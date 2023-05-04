@@ -54,7 +54,7 @@ library("ggtree", pos = .Machine$integer.max)
 # Define UI for application
 ui <- navbarPage(
   id = "navTabset",
-  # windowTitle = "StrainHub",
+  windowTitle = "StrainHub",
   # theme = shinytheme("flatly"),
   theme = bs_theme(bootswatch = "flatly", version = 5),
   # theme = "uncc.css",
@@ -62,33 +62,42 @@ ui <- navbarPage(
   # footer = includeHTML("footer.html"),
   # nav_spacer(),
   nav("Home",
-      # setBackgroundColor(
-      #   color = "#2C3E50"
-      # ),
-      # h2("Welcome to", align = "center"),
-      # h1("StrainHub", align = "center", style="font-size: 550%;"),
       h1(img(src="mainlogo.png", width="500px", align="center"), align = "center"),
-      # sidebarPanel(style = "background-color: #FFFFFF", width = 3, position = "left"),
-      card(
-        card_body(
-          # style = "background-color: #FFFFFF",
-          # width = 6,
-          br(),
-          p("Welcome to StrainHub, an open access, web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and associated metadata.",
-            # "StrainHub was initially designed as an open access web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and associated metadata. We are currently integrating Ybyrá, a project of software solutions for data analysis in phylogenetics in the StrainHub framework to transform it into a suite of tools for both phylogenetic and pathogen transmission network analyses.",
-            align ="center",
-            style="font-size: 120%;"),
-          p("StrainHub is being developed as a collaborative project between researchers from the University of California at San Diego and the University of North Carolina at Charlotte as an effort to create new the tools that will enable an in-depth analysis and data visualization of the spread of pathogens.",
-            align ="center",
-            style="font-size: 120%;"),
-          fluidRow(column(width = 5, img(src="ucsd-sm.jpg", width="200px", align="left")),
-                   column(width = 2, div(style="display:inline-block",
-                                         actionButton("getstartedbutton", label = "Get Started ►", class = "btn-primary btn-lg"),
-                                         style="float:middle")),
-                   column(width = 5, img(src="uncc-cci.png", width="200px", align="right")))
-        )
+      fluidRow(
+        column(width = 3),
+        column(width = 6,
+               p("Welcome to StrainHub, an open access, web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and associated metadata.",
+                 align ="center",
+                 style="font-size: 120%;"),
+               p("StrainHub is being developed as a collaborative project between researchers from the University of California at San Diego, the University of California at Santa Cruz, and the University of North Carolina at Charlotte as an effort to create new tools that will enable an in-depth analysis and data visualization of genetic information into the spread of pathogens.",
+                 align ="center",
+                 style="font-size: 120%;")
+        ),
+        column(width = 3),
       ),
-      # sidebarPanel(style = "background-color: #FFFFFF", width = 3, position = "right"),
+      fluidRow(
+        column(width = 2),
+        column(width = 1,
+               img(src="ucsd.png", width="250px", align="left"),
+               img(src="ucsc.jpg", width="250px", align="left"),
+               img(src="uncc.png", width="250px", align="left")
+               ),
+        column(width = 1),
+        column(width = 4, 
+               p(align = "middle",
+                 actionButton("getstartedbutton", label = "Get Started ►", class = "btn-primary btn-lg")
+                 )
+               ),
+        column(width = 2,
+               p("Hosted By: ",
+                 br(),
+                 tags$a(href="https://tuple.xyz",
+                        img(src="tuple_logo_bk.png", width="200px", align="left")
+                        ),
+                 align = "left")
+               ),
+        column(width = 2),
+        )
   ),
   nav("Network Visualizer",
       navs_tab_card(
@@ -143,7 +152,7 @@ ui <- navbarPage(
               nav_menu(
                 title = "Download Network",
                 align = "right",
-                icon = icon("gear"),
+                icon = icon("download"),
                 nav_item(
                   downloadButton("exportplothtml",
                                  "Export as HTML"),
@@ -190,9 +199,9 @@ ui <- navbarPage(
             #   width = "300px",
             #   tooltip = tooltipOptions(title = "Download Network As...")
             # ) %>% div(style="float:left; margin-left:5px;"),
-            # br(),
-            
-            jqui_resizable(visNetworkOutput("graphplot", height = "768px")) %>% withSpinner(color = "#2C3E50", type = 4)
+            br(),
+            jqui_resizable(visNetworkOutput("graphplot", height = "768px")) %>%
+              withSpinner(color = "#2C3E50", type = 4)
         ),
         # tabPanel("Tree Preview",
         #          h4("Phylogeny Contents"),
@@ -200,85 +209,166 @@ ui <- navbarPage(
         #          jqui_resizable(plotlyOutput("treepreview", height = "768px")) %>% withSpinner(color = "#2C3E50", type = 4)
         # ),
         nav("Map",
-            dropdownButton(
-              tags$h3("Map Settings"),
-              fluidRow(
-                column(6, switchInput("maparrowedges",
-                                      label = "Line End",
-                                      onLabel = "<i class=\"fas fa-minus\"></i>",
-                                      offLabel = "<i class=\"fas fa-arrows-alt-h\"></i>",
-                                      onStatus = "secondary", 
-                                      offStatus = "secondary")),
-                
-                
-                column(6, switchInput("maparrowfill",
-                                      label = "Arrow Style",
-                                      onLabel = "<i class=\"fas fa-caret-left\"></i>",
-                                      offLabel = "<i class=\"fas fa-angle-right\"></i>",
-                                      value = TRUE,
-                                      onStatus = "secondary", 
-                                      offStatus = "secondary"))),
-              
-              fluidRow(
-                
-                column(6, switchInput("mapshowlabels",
-                                      label = "Location Labels",
-                                      onLabel = "On",
-                                      offLabel = "Off",
-                                      value = TRUE,
-                                      onStatus = "info", 
-                                      offStatus = "secondary")),
-                
-                column(6, switchInput("mapshowpoints",
-                                      label = "Location Points",
-                                      onLabel = "On",
-                                      offLabel = "Off",
-                                      onStatus = "info", 
-                                      offStatus = "secondary"))),
-              
-              colourInput("pointColorPicker", "Point Color", "#000000"),
-              sliderInput("pointOpacityPicker",
-                          label = "Point Opacity",
-                          min = 0, max = 1, value = 0.5),
-              colourInput("labelColorPicker", "Label Color", "#000000"),
-              selectInput("basemapselection",
-                          label = "Map Style",
-                          choices = list("Streets" = "Streets",
-                                         "Topographic" = "Topographic",
-                                         "NationalGeographic" = "NationalGeographic",
-                                         "Oceans" = "Oceans",
-                                         "Gray" = "Gray",
-                                         "DarkGray" = "DarkGray",
-                                         "Imagery" = "Imagery",
-                                         "ShadedRelief" = "ShadedRelief",
-                                         "Terrain" = "Terrain"),
-                          selected = "Gray"),
-              circle = FALSE,
-              status = "success",
-              icon = icon("gear"),
-              width = "300px",
-              tooltip = tooltipOptions(title = "Map Settings")
-            ) %>% div(style="float:left"),
-            p(" "),
-            dropdownButton(
-              tags$h3("Download Map"),
-              downloadButton("exportmaphtml",
-                             "Export as HTML",
-                             style="color: white;"),
-              br(),
-              downloadButton("exportmappng",
-                             "Export as PNG",
-                             style="color: white;"),
-              p("For larger screen resolutions, taking a screenshot of the map may provide a higher quality image than this exporter."),
-              circle = FALSE,
-              status = "primary",
-              icon = icon("download"),
-              width = "300px",
-              tooltip = tooltipOptions(title = "Download Map As...")
-            ) %>% div(style="float:left; margin-left:5px;"),
+            navs_pill(
+              nav_spacer(),
+              nav_menu(
+                title = "Map Settings",
+                align = "right",
+                icon = icon("gear"),
+                nav_item(
+                  fluidRow(
+                    column(6, switchInput("maparrowedges",
+                                          label = "Line End",
+                                          onLabel = "<i class=\"fas fa-minus\"></i>",
+                                          offLabel = "<i class=\"fas fa-arrows-alt-h\"></i>",
+                                          onStatus = "secondary", 
+                                          offStatus = "secondary")),
+                    
+                    
+                    column(6, switchInput("maparrowfill",
+                                          label = "Arrow Style",
+                                          onLabel = "<i class=\"fas fa-caret-left\"></i>",
+                                          offLabel = "<i class=\"fas fa-angle-right\"></i>",
+                                          value = TRUE,
+                                          onStatus = "secondary", 
+                                          offStatus = "secondary"))),
+                  
+                  fluidRow(
+                    
+                    column(6, switchInput("mapshowlabels",
+                                          label = "Location Labels",
+                                          onLabel = "On",
+                                          offLabel = "Off",
+                                          value = TRUE,
+                                          onStatus = "info", 
+                                          offStatus = "secondary")),
+                    
+                    column(6, switchInput("mapshowpoints",
+                                          label = "Location Points",
+                                          onLabel = "On",
+                                          offLabel = "Off",
+                                          onStatus = "info", 
+                                          offStatus = "secondary"))),
+                  
+                  colourInput("pointColorPicker", "Point Color", "#000000"),
+                  sliderInput("pointOpacityPicker",
+                              label = "Point Opacity",
+                              min = 0, max = 1, value = 0.5),
+                  colourInput("labelColorPicker", "Label Color", "#000000"),
+                  selectInput("basemapselection",
+                              label = "Map Style",
+                              choices = list("Streets" = "Streets",
+                                             "Topographic" = "Topographic",
+                                             "NationalGeographic" = "NationalGeographic",
+                                             "Oceans" = "Oceans",
+                                             "Gray" = "Gray",
+                                             "DarkGray" = "DarkGray",
+                                             "Imagery" = "Imagery",
+                                             "ShadedRelief" = "ShadedRelief",
+                                             "Terrain" = "Terrain"),
+                              selected = "Gray")
+                )
+              ),
+              nav_menu(
+                title = "Download Map",
+                align = "right",
+                icon = icon("download"),
+                nav_item(
+                  downloadButton("exportmaphtml",
+                                 "Export as HTML"),
+                  p("Downloading as HTML will retain the interactivity of the network that can be viewed by anyone with a web browser."),
+                  br(),
+                  downloadButton("exportmappng",
+                                 "Export as PNG"),
+                  p("For larger screen resolutions, taking a screenshot of the map may provide a higher quality image than this exporter.")
+                )
+              )
+            ),
             br(),
-            jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% withSpinner(color = "#2C3E50", type = 4)
+            jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% 
+              withSpinner(color = "#2C3E50", type = 4)
         ),
+        # nav("Map",
+        #     dropdownButton(
+        #       tags$h3("Map Settings"),
+        #       fluidRow(
+        #         column(6, switchInput("maparrowedges",
+        #                               label = "Line End",
+        #                               onLabel = "<i class=\"fas fa-minus\"></i>",
+        #                               offLabel = "<i class=\"fas fa-arrows-alt-h\"></i>",
+        #                               onStatus = "secondary", 
+        #                               offStatus = "secondary")),
+        #         
+        #         
+        #         column(6, switchInput("maparrowfill",
+        #                               label = "Arrow Style",
+        #                               onLabel = "<i class=\"fas fa-caret-left\"></i>",
+        #                               offLabel = "<i class=\"fas fa-angle-right\"></i>",
+        #                               value = TRUE,
+        #                               onStatus = "secondary", 
+        #                               offStatus = "secondary"))),
+        #       
+        #       fluidRow(
+        #         
+        #         column(6, switchInput("mapshowlabels",
+        #                               label = "Location Labels",
+        #                               onLabel = "On",
+        #                               offLabel = "Off",
+        #                               value = TRUE,
+        #                               onStatus = "info", 
+        #                               offStatus = "secondary")),
+        #         
+        #         column(6, switchInput("mapshowpoints",
+        #                               label = "Location Points",
+        #                               onLabel = "On",
+        #                               offLabel = "Off",
+        #                               onStatus = "info", 
+        #                               offStatus = "secondary"))),
+        #       
+        #       colourInput("pointColorPicker", "Point Color", "#000000"),
+        #       sliderInput("pointOpacityPicker",
+        #                   label = "Point Opacity",
+        #                   min = 0, max = 1, value = 0.5),
+        #       colourInput("labelColorPicker", "Label Color", "#000000"),
+        #       selectInput("basemapselection",
+        #                   label = "Map Style",
+        #                   choices = list("Streets" = "Streets",
+        #                                  "Topographic" = "Topographic",
+        #                                  "NationalGeographic" = "NationalGeographic",
+        #                                  "Oceans" = "Oceans",
+        #                                  "Gray" = "Gray",
+        #                                  "DarkGray" = "DarkGray",
+        #                                  "Imagery" = "Imagery",
+        #                                  "ShadedRelief" = "ShadedRelief",
+        #                                  "Terrain" = "Terrain"),
+        #                   selected = "Gray"),
+        #       circle = FALSE,
+        #       status = "success",
+        #       icon = icon("gear"),
+        #       width = "300px",
+        #       tooltip = tooltipOptions(title = "Map Settings")
+        #     ) %>% div(style="float:left"),
+        #     p(" "),
+        #     dropdownButton(
+        #       tags$h3("Download Map"),
+        #       downloadButton("exportmaphtml",
+        #                      "Export as HTML",
+        #                      style="color: white;"),
+        #       br(),
+        #       downloadButton("exportmappng",
+        #                      "Export as PNG",
+        #                      style="color: white;"),
+        #       p("For larger screen resolutions, taking a screenshot of the map may provide a higher quality image than this exporter."),
+        #       circle = FALSE,
+        #       status = "primary",
+        #       icon = icon("download"),
+        #       width = "300px",
+        #       tooltip = tooltipOptions(title = "Download Map As...")
+        #     ) %>% div(style="float:left; margin-left:5px;"),
+        #     br(),
+        #     jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% 
+        #       withSpinner(color = "#2C3E50", type = 4)
+        # ),
         nav("Metrics",
             div(downloadButton("downloadmetrics", "Download Output Metrics", class = "btn-outline-primary"), style="float:right"),
             br(),
