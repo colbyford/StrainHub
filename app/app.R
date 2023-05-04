@@ -1,5 +1,5 @@
 ## StrainHub
-# This is a Shiny web application.
+# This is a Shiny web application for StrainHub.
 # You can run the application by clicking the 'Run App' button above.
 ##
 
@@ -12,7 +12,6 @@ library(ade4)
 library(knitr)
 
 ## Load other libraries
-# library(shinythemes)
 library(bslib)
 library(shinyWidgets)
 library(readr)
@@ -31,7 +30,7 @@ library(plotly)
 library(shinyjqui)
 library(shinycssloaders)
 library(webshot)
-#loads core strainhub functions from package
+## Loads core strainhub functions from package
 library(strainhub)
 #source("strainhub_functions.R")
 
@@ -55,14 +54,10 @@ library("ggtree", pos = .Machine$integer.max)
 ui <- navbarPage(
   id = "navTabset",
   windowTitle = "StrainHub",
-  # theme = shinytheme("flatly"),
   theme = bs_theme(bootswatch = "flatly", version = 5),
-  # theme = "uncc.css",
   title = "StrainHub",
-  # footer = includeHTML("footer.html"),
-  # nav_spacer(),
   nav("Home",
-      h1(img(src="mainlogo.png", width="500px", align="center"), align = "center"),
+      h1(img(src="sh2_logo_blue.png", width="500px", align="center"), align = "center"),
       fluidRow(
         column(width = 3),
         column(width = 6,
@@ -77,27 +72,55 @@ ui <- navbarPage(
       ),
       fluidRow(
         column(width = 2),
-        column(width = 1,
-               img(src="ucsd.png", width="250px", align="left"),
-               img(src="ucsc.jpg", width="250px", align="left"),
-               img(src="uncc.png", width="250px", align="left")
+        column(width = 3,
+               # img(src="ucsd.png", width="150px", align="left"),
+               # img(src="ucsc.png", width="150px", align="left"),
+               # img(src="uncc.png", width="150px", align="left")
                ),
-        column(width = 1),
-        column(width = 4, 
+        # column(width = 1),
+        column(width = 2, 
                p(align = "middle",
                  actionButton("getstartedbutton", label = "Get Started ►", class = "btn-primary btn-lg")
                  )
                ),
+        column(width = 1),
         column(width = 2,
-               p("Hosted By: ",
-                 br(),
-                 tags$a(href="https://tuple.xyz",
-                        img(src="tuple_logo_bk.png", width="200px", align="left")
-                        ),
-                 align = "left")
+               # p("Hosted By: ",
+               #   br(),
+               #   tags$a(href="https://tuple.xyz",
+               #          img(src="tuple_logo_bk.png", width="200px", align="left")
+               #          ),
+               #   align = "left")
                ),
         column(width = 2),
+        ),
+      div(
+        class = "footer",
+        fluidRow(
+          column(width = 2),
+          column(width = 3,
+                 p(align = "middle",
+                   img(src="ucsd.png", width="150px", align="middle"),
+                   HTML('&nbsp;'), HTML('&nbsp;'),
+                   # br(), br(),
+                   img(src="ucsc.png", width="150px", align="middle"),
+                   HTML('&nbsp;'), HTML('&nbsp;'),
+                   # br(), br(),
+                   img(src="uncc.png", width="150px", align="middle")
+                 )
+          ),
+          column(width = 3),
+          column(width = 2,
+                 p("Hosted By: ",
+                   br(),
+                   tags$a(href="https://tuple.xyz",
+                          img(src="tuple_logo_bk.png", width="150px", align="left")
+                   ),
+                   align = "left")
+          ),
+          column(width = 2),
         )
+      )
   ),
   nav("Network Visualizer",
       navs_tab_card(
@@ -165,40 +188,6 @@ ui <- navbarPage(
                 )
               )
             ),
-            
-            # dropdownButton(
-            #   tags$h3("Network Settings"),
-            #   radioButtons("arrowedges",
-            #                label = "Edge Style",
-            #                choices = c("Arrows" = "TRUE", "Lines" = "FALSE"),
-            #                selected = "TRUE"),
-            #   circle = FALSE,
-            #   status = "success",
-            #   icon = icon("gear"),
-            #   width = "300px",
-            #   tooltip = tooltipOptions(title = "Network Settings")
-            # ) %>% div(style="float:left"),
-            # # p(" "),
-            # dropdownButton(
-            #   tags$h3("Download Network"),
-            #   downloadButton("exportplothtml",
-            #                  "Export as HTML",
-            #                  style="color: white;"),
-            #   br(),
-            #   downloadButton("exportplotpng",
-            #                  "Export as PNG",
-            #                  style="color: white;"),
-            #   p("For larger screen resolutions, taking a screenshot of the network may provide a higher quality image than this exporter."),
-            #   downloadButton("exportgraphrds",
-            #                  "Export as RDS",
-            #                  style="color: white;"),
-            #   p("Exporting as RDS allows for further manipulation of the transmission network in the StrainHub R package or for use in future StrainHub web sessions."),
-            #   circle = FALSE,
-            #   status = "primary",
-            #   icon = icon("download"),
-            #   width = "300px",
-            #   tooltip = tooltipOptions(title = "Download Network As...")
-            # ) %>% div(style="float:left; margin-left:5px;"),
             br(),
             jqui_resizable(visNetworkOutput("graphplot", height = "768px")) %>%
               withSpinner(color = "#2C3E50", type = 4)
@@ -288,87 +277,6 @@ ui <- navbarPage(
             jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% 
               withSpinner(color = "#2C3E50", type = 4)
         ),
-        # nav("Map",
-        #     dropdownButton(
-        #       tags$h3("Map Settings"),
-        #       fluidRow(
-        #         column(6, switchInput("maparrowedges",
-        #                               label = "Line End",
-        #                               onLabel = "<i class=\"fas fa-minus\"></i>",
-        #                               offLabel = "<i class=\"fas fa-arrows-alt-h\"></i>",
-        #                               onStatus = "secondary", 
-        #                               offStatus = "secondary")),
-        #         
-        #         
-        #         column(6, switchInput("maparrowfill",
-        #                               label = "Arrow Style",
-        #                               onLabel = "<i class=\"fas fa-caret-left\"></i>",
-        #                               offLabel = "<i class=\"fas fa-angle-right\"></i>",
-        #                               value = TRUE,
-        #                               onStatus = "secondary", 
-        #                               offStatus = "secondary"))),
-        #       
-        #       fluidRow(
-        #         
-        #         column(6, switchInput("mapshowlabels",
-        #                               label = "Location Labels",
-        #                               onLabel = "On",
-        #                               offLabel = "Off",
-        #                               value = TRUE,
-        #                               onStatus = "info", 
-        #                               offStatus = "secondary")),
-        #         
-        #         column(6, switchInput("mapshowpoints",
-        #                               label = "Location Points",
-        #                               onLabel = "On",
-        #                               offLabel = "Off",
-        #                               onStatus = "info", 
-        #                               offStatus = "secondary"))),
-        #       
-        #       colourInput("pointColorPicker", "Point Color", "#000000"),
-        #       sliderInput("pointOpacityPicker",
-        #                   label = "Point Opacity",
-        #                   min = 0, max = 1, value = 0.5),
-        #       colourInput("labelColorPicker", "Label Color", "#000000"),
-        #       selectInput("basemapselection",
-        #                   label = "Map Style",
-        #                   choices = list("Streets" = "Streets",
-        #                                  "Topographic" = "Topographic",
-        #                                  "NationalGeographic" = "NationalGeographic",
-        #                                  "Oceans" = "Oceans",
-        #                                  "Gray" = "Gray",
-        #                                  "DarkGray" = "DarkGray",
-        #                                  "Imagery" = "Imagery",
-        #                                  "ShadedRelief" = "ShadedRelief",
-        #                                  "Terrain" = "Terrain"),
-        #                   selected = "Gray"),
-        #       circle = FALSE,
-        #       status = "success",
-        #       icon = icon("gear"),
-        #       width = "300px",
-        #       tooltip = tooltipOptions(title = "Map Settings")
-        #     ) %>% div(style="float:left"),
-        #     p(" "),
-        #     dropdownButton(
-        #       tags$h3("Download Map"),
-        #       downloadButton("exportmaphtml",
-        #                      "Export as HTML",
-        #                      style="color: white;"),
-        #       br(),
-        #       downloadButton("exportmappng",
-        #                      "Export as PNG",
-        #                      style="color: white;"),
-        #       p("For larger screen resolutions, taking a screenshot of the map may provide a higher quality image than this exporter."),
-        #       circle = FALSE,
-        #       status = "primary",
-        #       icon = icon("download"),
-        #       width = "300px",
-        #       tooltip = tooltipOptions(title = "Download Map As...")
-        #     ) %>% div(style="float:left; margin-left:5px;"),
-        #     br(),
-        #     jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% 
-        #       withSpinner(color = "#2C3E50", type = 4)
-        # ),
         nav("Metrics",
             div(downloadButton("downloadmetrics", "Download Output Metrics", class = "btn-outline-primary"), style="float:right"),
             br(),
@@ -379,11 +287,9 @@ ui <- navbarPage(
   ),
   nav("About",
       card(
-      # sidebarPanel(style = "background-color: #FFFFFF", width = 2, position = "left"),
-      mainPanel(width = 8,
-                includeMarkdown("https://github.com/abschneider/StrainHub/raw/master/ABOUT.md")
+      mainPanel(#width = 8,
+                includeMarkdown("https://github.com/abschneider/StrainHub/raw/master/ABOUT.md"),
       ),
-      # sidebarPanel(style = "background-color: #FFFFFF", width = 2, position = "right"),
       icon = icon("question")
       )
   )
