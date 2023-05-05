@@ -151,7 +151,7 @@ ui <- navbarPage(
                           
                           br(),
                           includeHTML("footer.html"),
-                          p("v1.2.0", align = "right") ## Version
+                          p("v2.0.0", align = "right") ## Version
         ),
         nav_spacer(),
         nav("Network Plot",
