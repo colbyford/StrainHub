@@ -18,23 +18,24 @@ RUN apt-get update && apt-get install -y \
     libnode-dev
 
 ## Install R libraries
-RUN R -e "install.packages('shiny', repos='http://cran.rstudio.com/')"
+# RUN R -e "install.packages('shiny', repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages('shinydashboard', repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages('remotes', repos='http://cran.rstudio.com/')"
 
-RUN R -e "install.packages(c('ade4',  'adegenet',  'ape',  'castor', \
+RUN R -e "install.packages(c('ade4',  'adegenet',  'ape',  'bslib',  'castor', \
           'colourpicker',  'data.table',  'dplyr',  'DT', 'geosphere', \
-          'ggplot2', 'ggtree',  'ggtree',  'globe4r',  'hashmap',  'htmltools', \
+          'ggplot2', 'ggtree',  'ggtree',  'globe4r',  'hash',  'htmltools', \
           'htmlwidgets',  'igraph', 'import',  'knitr',  'leaflet', \
           'magrittr',  'markdown',  'network', 'phangorn', 'plotly',  'plyr',  \
           'randomcoloR',  'rbokeh',  'readr',  'rhandsontable',  \
-          'rmarkdown',  'shiny',  'shinycssloaders',  'shinyjqui',  \
+          'rmarkdown',  'shinycssloaders',  'shinyjqui',  \
           'shinythemes',  'shinyWidgets',  'stringr',  'tibble',  \
           'treeio',  'visNetwork',  'webshot'))"
 
-RUN R -e "remotes::install_github('YuLab-SMU/treeio')"
-RUN R -e "remotes::install_github('YuLab-SMU/ggtree')"
-RUN R -e "remotes::install_github('nathan-russell/hashmap')"
+RUN R -e "install.packages('bslib', repos='http://cran.rstudio.com/')"
+# RUN R -e "remotes::install_github('YuLab-SMU/treeio')"
+# RUN R -e "remotes::install_github('YuLab-SMU/ggtree')"
+# RUN R -e "remotes::install_github('nathan-russell/hashmap')"
 # RUN R -e "remotes::install_github('rstudio/httpuv')"
 # RUN R -e "remotes::install_github('colbyford/strainhub', subdir='pkg', dependencies=TRUE)"
 RUN R -e "remotes::install_github('colbyford/strainhub', subdir='pkg', dependencies=FALSE)"

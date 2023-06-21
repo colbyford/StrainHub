@@ -555,18 +555,18 @@ server <- function(input, output, session) {
   availablecolumns <- eventReactive(input$getlistbutton, {
     if(input$tree_input_type == "Parsimony Ancestral Reconstruction"){
       validate(need(input$csvfile != "",  "\n3a. Please upload the accompanying metadata file."))
-      availablecolumns <- listStates(metadata = rv$metadata,
-                                     treeType = "parsimonious")
+      availablecolumns <- list_states(metadata = rv$metadata,
+                                      treeType = "parsimonious")
       
     } else if(input$tree_input_type == "BEAST Phylogeography"){
       validate(need(input$treefile != "", "\n2. Please upload a tree file."))
-      availablecolumns <- listStates(treedata = treedata(),
-                                     treeType = "bayesian")
+      availablecolumns <- list_states(treedata = treedata(),
+                                      treeType = "bayesian")
       
     } else if(input$tree_input_type == "Create Neighbor-Joining Tree"){
       validate(need(input$csvfile != "",  "\n3a. Please upload the accompanying metadata file."))
-      availablecolumns <- listStates(metadata = rv$metadata,
-                                     treeType = "nj")
+      availablecolumns <- list_states(metadata = rv$metadata,
+                                      treeType = "nj")
     }
   })
   
@@ -690,12 +690,12 @@ server <- function(input, output, session) {
              "\n4b. Make sure to select a state column. (Must not contain all identical values.)")
       )
       
-      graph <- makeTransNet(treedata = treedata(),
-                            metadata = rv$metadata,
-                            columnSelection = input$columnselection,
-                            # columnSelection = input$columnselection_row_last_clicked,
-                            centralityMetric = input$metricradio,
-                            treeType = "parsimonious")
+      graph <- make_transnet(treedata = treedata(),
+                             metadata = rv$metadata,
+                             columnSelection = input$columnselection,
+                             # columnSelection = input$columnselection_row_last_clicked,
+                             centralityMetric = input$metricradio,
+                             treeType = "parsimonious")
       # height = paste0(0.75*session$clientData$output_graph_width,"px")
       
     } else if(input$tree_input_type == "BEAST Phylogeography"){
@@ -710,13 +710,13 @@ server <- function(input, output, session) {
       # )
       
       
-      graph <-  makeTransNet(treedata = treedata(),
-                             columnSelection = input$columnselection,
-                             # columnSelection = input$columnselection_row_last_clicked,
-                             centralityMetric = input$metricradio,
-                             threshold = input$threshold,
-                             threshold2 = input$posterior,
-                             treeType = "bayesian")
+      graph <-  make_transnet(treedata = treedata(),
+                              columnSelection = input$columnselection,
+                              # columnSelection = input$columnselection_row_last_clicked,
+                              centralityMetric = input$metricradio,
+                              threshold = input$threshold,
+                              threshold2 = input$posterior,
+                              treeType = "bayesian")
       # height = paste0(0.75*session$clientData$output_graph_width,"px")
       
     } else if(input$tree_input_type == "Create Neighbor-Joining Tree"){
@@ -734,15 +734,15 @@ server <- function(input, output, session) {
         #      "\n4b. Make sure to select a state column. (Must not contain all identical values.)")
       )
       
-      graph <- makeTransNet(treedata = treedata(),
-                            metadata = rv$metadata,
-                            columnSelection = input$columnselection,
-                            # columnSelection = input$columnselection_row_last_clicked,
-                            centralityMetric = input$metricradio,
-                            threshold = input$threshold,
-                            rootSelection = input$rootselect,
-                            bootstrapValue = input$bootstrapvalue,
-                            treeType = "nj")
+      graph <- make_transnet(treedata = treedata(),
+                             metadata = rv$metadata,
+                             columnSelection = input$columnselection,
+                             # columnSelection = input$columnselection_row_last_clicked,
+                             centralityMetric = input$metricradio,
+                             threshold = input$threshold,
+                             rootSelection = input$rootselect,
+                             bootstrapValue = input$bootstrapvalue,
+                             treeType = "nj")
       # height = paste0(0.75*session$clientData$output_graph_width,"px")
       
     } else if(input$tree_input_type == "Upload StrainHub RDS file"){
