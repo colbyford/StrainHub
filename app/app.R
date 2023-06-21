@@ -48,7 +48,7 @@ library(randomcoloR)
 library(colourpicker)
 library(phangorn)
 library(ape)
-library("ggtree", pos = .Machine$integer.max)
+# library("ggtree", pos = .Machine$integer.max)
 
 # Define UI for application
 ui <- navbarPage(
