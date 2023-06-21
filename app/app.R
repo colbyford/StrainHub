@@ -1,5 +1,5 @@
 ## StrainHub
-# This is a Shiny web application.
+# This is a Shiny web application for StrainHub.
 # You can run the application by clicking the 'Run App' button above.
 ##
 
@@ -12,7 +12,7 @@ library(ade4)
 library(knitr)
 
 ## Load other libraries
-library(shinythemes)
+library(bslib)
 library(shinyWidgets)
 library(readr)
 library(network)
@@ -30,7 +30,7 @@ library(plotly)
 library(shinyjqui)
 library(shinycssloaders)
 library(webshot)
-#loads core strainhub functions from package
+## Loads core strainhub functions from package
 library(strainhub)
 #source("strainhub_functions.R")
 
@@ -51,229 +51,247 @@ library(ape)
 library("ggtree", pos = .Machine$integer.max)
 
 # Define UI for application
-ui <- tagList(
-  #tags$head(includeScript("google-analytics.js")),
-  # tags$head(tags$style(type="text/css", "html, body {width: 100%; height: 100%; overflow: hidden}")),
-  tags$head(
-    tags$style(HTML("
-      .shiny-output-error-validation {
-        color: #E74C3C;
-      }
-    "))
-  ),
-  navbarPage(
-    id = "navTabset",
-    windowTitle = "StrainHub",
-    theme = shinytheme("flatly"),
-    # theme = "uncc.css",
-    title = "StrainHub",
-    # footer = includeHTML("footer.html"),
-    tabPanel("Home",
-             # setBackgroundColor(
-             #   color = "#2C3E50"
-             # ),
-             # h2("Welcome to", align = "center"),
-             # h1("StrainHub", align = "center", style="font-size: 550%;"),
-             h1(img(src="mainlogo.png", width="500px", align="center"), align = "center"),
-             sidebarPanel(style = "background-color: #FFFFFF", width = 3, position = "left"),
-             mainPanel(
-               style = "background-color: #FFFFFF",
-               width = 6,
-               br(),
-               p("Welcome to StrainHub, an open access web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and associated metadata.",
-                 # "StrainHub was initially designed as an open access web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and associated metadata. We are currently integrating Ybyrá, a project of software solutions for data analysis in phylogenetics in the StrainHub framework to transform it into a suite of tools for both phylogenetic and pathogen transmission network analyses.",
+ui <- navbarPage(
+  id = "navTabset",
+  windowTitle = "StrainHub",
+  theme = bs_theme(bootswatch = "flatly", version = 5),
+  title = "StrainHub",
+  nav("Home",
+      h1(img(src="sh2_logo_blue.png", width="500px", align="center"), align = "center"),
+      fluidRow(
+        column(width = 3),
+        column(width = 6,
+               p("Welcome to StrainHub, an open access, web-based software to generate disease transmission networks and associated metrics from a combination of a phylogenetic tree and associated metadata.",
                  align ="center",
                  style="font-size: 120%;"),
-               p("StrainHub is being developed as a collaborative project between researchers from the University of California at San Diego and the University of North Carolina at Charlotte as an effort to create new the tools that will enable an in-depth analysis and data visualization of the spread of pathogens.",
+               p("StrainHub is being developed as a collaborative project between researchers from the University of California at San Diego, the University of California at Santa Cruz, and the University of North Carolina at Charlotte as an effort to create new tools that will enable an in-depth analysis and data visualization of genetic information into the spread of pathogens.",
                  align ="center",
-                 style="font-size: 120%;"),
-               fluidRow(column(width = 5, img(src="ucsd-sm.jpg", width="200px", align="left")),
-                        column(width = 2, div(style="display:inline-block",
-                                              actionButton("getstartedbutton", label = "Get Started ►", class = "btn-primary btn-lg"),
-                                              style="float:middle")),
-                        column(width = 5, img(src="uncc-cci.png", width="200px", align="right")))
+                 style="font-size: 120%;")
+        ),
+        column(width = 3),
+      ),
+      fluidRow(
+        column(width = 2),
+        column(width = 3,
+               # img(src="ucsd.png", width="150px", align="left"),
+               # img(src="ucsc.png", width="150px", align="left"),
+               # img(src="uncc.png", width="150px", align="left")
                ),
-             sidebarPanel(style = "background-color: #FFFFFF", width = 3, position = "right"),
-             ),
-    tabPanel("Network Visualizer",
-             sidebarPanel(
-               width = 3,
-               selectInput("tree_input_type",
-                           label = "1. Transmission Network Method",
-                           choices = c("Parsimony Ancestral Reconstruction", "BEAST Phylogeography", "Create Neighbor-Joining Tree", "Upload StrainHub RDS file")),
-               uiOutput("inputtree"),
-               uiOutput("bootstrapval"),
-               div(uiOutput("metadatabuilderparams"), style="float:right"),
-               br(),
-               uiOutput("treeuiparams"),
-               uiOutput("treerootswitch"),
-               div(uiOutput("geodatabuilderparams"), style="float:right"),
-               br(),
-               uiOutput("geodataswitch"),
-               uiOutput('getlistswitch'),
-               br(),
-               br(),
-               uiOutput("columnselection"),
-               br(),
-               
-               uiOutput("metricradioswitch"),
-
-               br(),
-               uiOutput("plotbuttonswitch"),
-
-               br(),
-               includeHTML("footer.html"),
-               p("v1.2.0", align = "right") ## Version
-             ),
-             mainPanel(
-               width = 9,
-               tabsetPanel(id = "toptabs",
-                 tabPanel("Network Plot",
-                          dropdownButton(
-                            tags$h3("Network Settings"),
-                            radioButtons("arrowedges",
-                                         label = "Edge Style",
-                                         choices = c("Arrows" = "TRUE", "Lines" = "FALSE"),
-                                         selected = "TRUE"),
-                            circle = FALSE,
-                            status = "success",
-                            icon = icon("gear"),
-                            width = "300px",
-                            tooltip = tooltipOptions(title = "Network Settings")
-                          ) %>% div(style="float:left"),
-                          p(" "),
-                          dropdownButton(
-                            tags$h3("Download Network"),
-                            downloadButton("exportplothtml",
-                                           "Export as HTML",
-                                           style="color: white;"),
-                            br(),
-                            downloadButton("exportplotpng",
-                                           "Export as PNG",
-                                           style="color: white;"),
-                            p("For larger screen resolutions, taking a screenshot of the network may provide a higher quality image than this exporter."),
-                            downloadButton("exportgraphrds",
-                                           "Export as RDS",
-                                           style="color: white;"),
-                            p("Exporting as RDS allows for further manipulation of the transmission network in the StrainHub R package or for use in future StrainHub web sessions."),
-                            circle = FALSE,
-                            status = "primary",
-                            icon = icon("download"),
-                            width = "300px",
-                            tooltip = tooltipOptions(title = "Download Network As...")
-                          ) %>% div(style="float:left; margin-left:5px;"),
-                          br(),
-
-                          jqui_resizable(visNetworkOutput("graphplot", height = "768px")) %>% withSpinner(color = "#2C3E50", type = 4)
-                 ),
-                 # tabPanel("Tree Preview",
-                 #          h4("Phylogeny Contents"),
-                 #          #plotlyOutput("treepreview")
-                 #          jqui_resizable(plotlyOutput("treepreview", height = "768px")) %>% withSpinner(color = "#2C3E50", type = 4)
-                 # ),
-                 tabPanel("Map",
-                          dropdownButton(
-                            tags$h3("Map Settings"),
-                            fluidRow(
-
-                              column(6, switchInput("maparrowedges",
-                                                    label = "Line End",
-                                                    onLabel = "<i class=\"fas fa-minus\"></i>",
-                                                    offLabel = "<i class=\"fas fa-arrows-alt-h\"></i>",
-                                                    onStatus = "secondary", 
-                                                    offStatus = "secondary")),
-
-                              
-                              column(6, switchInput("maparrowfill",
-                                                    label = "Arrow Style",
-                                                    onLabel = "<i class=\"fas fa-caret-left\"></i>",
-                                                    offLabel = "<i class=\"fas fa-angle-right\"></i>",
-                                                    value = TRUE,
-                                                    onStatus = "secondary", 
-                                                    offStatus = "secondary"))),
-                            
-                            fluidRow(
-
-                              column(6, switchInput("mapshowlabels",
-                                                    label = "Location Labels",
-                                                    onLabel = "On",
-                                                    offLabel = "Off",
-                                                    value = TRUE,
-                                                    onStatus = "info", 
-                                                    offStatus = "secondary")),
-
-                              column(6, switchInput("mapshowpoints",
-                                                    label = "Location Points",
-                                                    onLabel = "On",
-                                                    offLabel = "Off",
-                                                    onStatus = "info", 
-                                                    offStatus = "secondary"))),
-
-                            colourInput("pointColorPicker", "Point Color", "#000000"),
-                            sliderInput("pointOpacityPicker",
-                                        label = "Point Opacity",
-                                        min = 0, max = 1, value = 0.5),
-                            colourInput("labelColorPicker", "Label Color", "#000000"),
-                            selectInput("basemapselection",
-                                         label = "Map Style",
-                                         choices = list("Streets" = "Streets",
-                                                        "Topographic" = "Topographic",
-                                                        "NationalGeographic" = "NationalGeographic",
-                                                        "Oceans" = "Oceans",
-                                                        "Gray" = "Gray",
-                                                        "DarkGray" = "DarkGray",
-                                                        "Imagery" = "Imagery",
-                                                        "ShadedRelief" = "ShadedRelief",
-                                                        "Terrain" = "Terrain"),
-                                         selected = "Gray"),
-                            circle = FALSE,
-                            status = "success",
-                            icon = icon("gear"),
-                            width = "300px",
-                            tooltip = tooltipOptions(title = "Map Settings")
-                          ) %>% div(style="float:left"),
-                          p(" "),
-                          dropdownButton(
-                            tags$h3("Download Map"),
-                            downloadButton("exportmaphtml",
-                                           "Export as HTML",
-                                           style="color: white;"),
-                            br(),
-                            downloadButton("exportmappng",
-                                           "Export as PNG",
-                                           style="color: white;"),
-                            p("For larger screen resolutions, taking a screenshot of the map may provide a higher quality image than this exporter."),
-                            circle = FALSE,
-                            status = "primary",
-                            icon = icon("download"),
-                            width = "300px",
-                            tooltip = tooltipOptions(title = "Download Map As...")
-                          ) %>% div(style="float:left; margin-left:5px;"),
-                          br(),
-                          jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% withSpinner(color = "#2C3E50", type = 4)
-                 ),
-                 tabPanel("Metrics",
-                          div(downloadButton("downloadmetrics", "Download Output Metrics", class = "btn-outline-primary"), style="float:right"),
-                          br(),
-                          DT::dataTableOutput("metricstable")
+        # column(width = 1),
+        column(width = 2, 
+               p(align = "middle",
+                 actionButton("getstartedbutton", label = "Get Started ►", class = "btn-primary btn-lg")
                  )
-               )
-             ),
-             icon = icon("chevron-right", lib = "glyphicon")
-             ),
-    tabPanel("About",
-             sidebarPanel(style = "background-color: #FFFFFF", width = 2, position = "left"),
-             mainPanel(width = 8,
-                       includeMarkdown("https://github.com/abschneider/StrainHub/raw/master/ABOUT.md")
-                       ),
-             sidebarPanel(style = "background-color: #FFFFFF", width = 2, position = "right"),
-             icon = icon("question"))#,
-    # tabPanel(title="Standalone",
-    #          icon = icon("github"))
-    # tabPanel(title=HTML("<br></a></li><li><a href='https://github.com/abschneider/StrainHub' target='_blank'>Standalone"),
-    #          icon = icon("github")),
-    # tabPanel(title=HTML("tab3</a></li><li><a href='mailto:adebernardischneider@ucsd.edu' target='_blank'>Contact"),
-    #          icon = icon("envelope"))
+               ),
+        column(width = 1),
+        column(width = 2,
+               # p("Hosted By: ",
+               #   br(),
+               #   tags$a(href="https://tuple.xyz",
+               #          img(src="tuple_logo_bk.png", width="200px", align="left")
+               #          ),
+               #   align = "left")
+               ),
+        column(width = 2),
+        ),
+      div(
+        class = "footer",
+        fluidRow(
+          column(width = 2),
+          column(width = 3,
+                 p(align = "middle",
+                   img(src="ucsd.png", width="150px", align="middle"),
+                   HTML('&nbsp;'), HTML('&nbsp;'),
+                   # br(), br(),
+                   img(src="ucsc.png", width="150px", align="middle"),
+                   HTML('&nbsp;'), HTML('&nbsp;'),
+                   # br(), br(),
+                   img(src="uncc.png", width="150px", align="middle")
+                 )
+          ),
+          column(width = 3),
+          column(width = 2,
+                 p("Hosted By: ",
+                   br(),
+                   tags$a(href="https://tuple.xyz",
+                          img(src="tuple_logo_bk.png", width="150px", align="left")
+                   ),
+                   align = "left")
+          ),
+          column(width = 2),
+        )
+      )
+  ),
+  nav("Network Visualizer",
+      navs_tab_card(
+        sidebar = sidebar("",
+                          width = 500,
+                          selectInput("tree_input_type",
+                                      label = "1. Transmission Network Method",
+                                      choices = c("Parsimony Ancestral Reconstruction", "BEAST Phylogeography", "Create Neighbor-Joining Tree", "Upload StrainHub RDS file")),
+                          uiOutput("inputtree"),
+                          uiOutput("bootstrapval"),
+                          div(uiOutput("metadatabuilderparams"), style="float:right"),
+                          br(),
+                          uiOutput("treeuiparams"),
+                          uiOutput("treerootswitch"),
+                          div(uiOutput("geodatabuilderparams"), style="float:right"),
+                          br(),
+                          uiOutput("geodataswitch"),
+                          uiOutput('getlistswitch'),
+                          br(),
+                          br(),
+                          uiOutput("columnselection"),
+                          br(),
+                          
+                          uiOutput("metricradioswitch"),
+                          
+                          br(),
+                          uiOutput("plotbuttonswitch"),
+                          
+                          br(),
+                          includeHTML("footer.html"),
+                          p("v2.0.1", align = "right") ## Version
+        ),
+        nav_spacer(),
+        nav("Network Plot",
+            navs_pill(
+              nav_spacer(),
+              nav_menu(
+                title = "Network Settings",
+                align = "right",
+                icon = icon("gear"),
+                nav_item(
+                  radioButtons("arrowedges",
+                               label = "Edge Style",
+                               choices = c("Arrows" = "TRUE", "Lines" = "FALSE"),
+                               selected = "TRUE"),
+                  circle = FALSE,
+                  status = "success",
+                  # width = "300px",
+                  # tooltip = tooltipOptions(title = "Network Settings")
+                )
+              ),
+              nav_menu(
+                title = "Download Network",
+                align = "right",
+                icon = icon("download"),
+                nav_item(
+                  downloadButton("exportplothtml",
+                                 "Export as HTML"),
+                  downloadButton("exportplotpng",
+                                 "Export as PNG"),
+                  p("For larger screen resolutions, taking a screenshot of the network may provide a higher quality image than this exporter."),
+                  downloadButton("exportgraphrds",
+                                 "Export as RDS"),
+                  p("Exporting as RDS allows for further manipulation of the transmission network in the StrainHub R package or for use in future StrainHub web sessions."),
+                )
+              )
+            ),
+            br(),
+            jqui_resizable(visNetworkOutput("graphplot", height = "768px")) %>%
+              withSpinner(color = "#2C3E50", type = 4)
+        ),
+        # tabPanel("Tree Preview",
+        #          h4("Phylogeny Contents"),
+        #          #plotlyOutput("treepreview")
+        #          jqui_resizable(plotlyOutput("treepreview", height = "768px")) %>% withSpinner(color = "#2C3E50", type = 4)
+        # ),
+        nav("Map",
+            navs_pill(
+              nav_spacer(),
+              nav_menu(
+                title = "Map Settings",
+                align = "right",
+                icon = icon("gear"),
+                nav_item(
+                  fluidRow(
+                    column(6, switchInput("maparrowedges",
+                                          label = "Line End",
+                                          onLabel = "<i class=\"fas fa-minus\"></i>",
+                                          offLabel = "<i class=\"fas fa-arrows-alt-h\"></i>",
+                                          onStatus = "secondary", 
+                                          offStatus = "secondary")),
+                    
+                    
+                    column(6, switchInput("maparrowfill",
+                                          label = "Arrow Style",
+                                          onLabel = "<i class=\"fas fa-caret-left\"></i>",
+                                          offLabel = "<i class=\"fas fa-angle-right\"></i>",
+                                          value = TRUE,
+                                          onStatus = "secondary", 
+                                          offStatus = "secondary"))),
+                  
+                  fluidRow(
+                    
+                    column(6, switchInput("mapshowlabels",
+                                          label = "Location Labels",
+                                          onLabel = "On",
+                                          offLabel = "Off",
+                                          value = TRUE,
+                                          onStatus = "info", 
+                                          offStatus = "secondary")),
+                    
+                    column(6, switchInput("mapshowpoints",
+                                          label = "Location Points",
+                                          onLabel = "On",
+                                          offLabel = "Off",
+                                          onStatus = "info", 
+                                          offStatus = "secondary"))),
+                  
+                  colourInput("pointColorPicker", "Point Color", "#000000"),
+                  sliderInput("pointOpacityPicker",
+                              label = "Point Opacity",
+                              min = 0, max = 1, value = 0.5),
+                  colourInput("labelColorPicker", "Label Color", "#000000"),
+                  selectInput("basemapselection",
+                              label = "Map Style",
+                              choices = list("Streets" = "Streets",
+                                             "Topographic" = "Topographic",
+                                             "NationalGeographic" = "NationalGeographic",
+                                             "Oceans" = "Oceans",
+                                             "Gray" = "Gray",
+                                             "DarkGray" = "DarkGray",
+                                             "Imagery" = "Imagery",
+                                             "ShadedRelief" = "ShadedRelief",
+                                             "Terrain" = "Terrain"),
+                              selected = "Gray")
+                )
+              ),
+              nav_menu(
+                title = "Download Map",
+                align = "right",
+                icon = icon("download"),
+                nav_item(
+                  downloadButton("exportmaphtml",
+                                 "Export as HTML"),
+                  p("Downloading as HTML will retain the interactivity of the network that can be viewed by anyone with a web browser."),
+                  br(),
+                  downloadButton("exportmappng",
+                                 "Export as PNG"),
+                  p("For larger screen resolutions, taking a screenshot of the map may provide a higher quality image than this exporter.")
+                )
+              )
+            ),
+            br(),
+            jqui_resizable(leafletOutput("mapoutput", height = "750px")) %>% 
+              withSpinner(color = "#2C3E50", type = 4)
+        ),
+        nav("Metrics",
+            div(downloadButton("downloadmetrics", "Download Output Metrics", class = "btn-outline-primary"), style="float:right"),
+            br(),
+            DT::dataTableOutput("metricstable")
+        ),
+        nav_spacer()
+      )
+  ),
+  nav("About",
+      card(
+      mainPanel(#width = 8,
+                includeMarkdown("https://github.com/abschneider/StrainHub/raw/master/ABOUT.md"),
+      ),
+      icon = icon("question")
+      )
   )
 )
 
@@ -295,8 +313,8 @@ server <- function(input, output, session) {
     
     switch(input$tree_input_type,
            "Parsimony Ancestral Reconstruction" = fileInput('treefile',
-                                   label = '2. Choose your Tree File',
-                                   accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick', '.nwk')),
+                                                            label = '2. Choose your Tree File',
+                                                            accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick', '.nwk')),
            "BEAST Phylogeography" = fileInput('treefile',
                                               label = '2. Choose your Tree File',
                                               accept = c('text/newick', 'text/plain', '.phy', '.tre', '.tree', '.newick', '.nwk')),
@@ -324,18 +342,18 @@ server <- function(input, output, session) {
   output$treeuiparams <- renderUI({
     if (is.null(input$tree_input_type))
       return()
-
+    
     switch(input$tree_input_type,
            "Parsimony Ancestral Reconstruction" = fileInput('csvfile',
-                                   label = '3a. Choose your Metadata File',
-                                   accept = c('text/csv', 'text/plain', '.csv', '.txt')),
+                                                            label = '3a. Choose your Metadata File',
+                                                            accept = c('text/csv', 'text/plain', '.csv', '.txt')),
            "BEAST Phylogeography" = sliderInput("threshold",
                                                 label = "3a. State Probability Threshold",
                                                 min = 0, max = 1, value = 0.9),
            "Create Neighbor-Joining Tree" = fileInput('csvfile',
                                                       label = '3a. Choose your Metadata File',
                                                       accept = c('text/csv', 'text/plain', '.csv', '.txt'))
-           )
+    )
   })
   
   
@@ -349,10 +367,10 @@ server <- function(input, output, session) {
     
     switch(input$tree_input_type,
            "Parsimony Ancestral Reconstruction" = actionButton("metadatabuilder",
-                                      label = "Edit Metadata",
-                                      icon = icon("wrench", lib = "font-awesome"),
-                                      class = "btn-secondary",
-                                      style = 'padding-top:1px;padding-bottom:1px;margin-top:20px'),
+                                                               label = "Edit Metadata",
+                                                               icon = icon("wrench", lib = "font-awesome"),
+                                                               class = "btn-secondary",
+                                                               style = 'padding-top:1px;padding-bottom:1px;margin-top:20px'),
            
            "Create Neighbor-Joining Tree" = actionButton("metadatabuilder",
                                                          label = "Edit Metadata",
@@ -392,10 +410,10 @@ server <- function(input, output, session) {
       size = "l",
       easyClose = TRUE,
       footer = tagList(actionButton("metasave",
-                              label = "Save Changes",
-                              icon = icon("save", lib = "font-awesome"),
-                              class = "btn-success"),
-                 modalButton("Close")),
+                                    label = "Save Changes",
+                                    icon = icon("save", lib = "font-awesome"),
+                                    class = "btn-success"),
+                       modalButton("Close")),
       rHandsontableOutput("editmeta")
       
     ))
@@ -406,7 +424,7 @@ server <- function(input, output, session) {
     rv$metadata <- isolate(as_tibble(hot_to_r(input$editmeta)))
   })
   
-
+  
   ## Geodata Editor
   output$geodatabuilderparams <- renderUI({
     if (is.null(input$tree_input_type))
@@ -417,16 +435,16 @@ server <- function(input, output, session) {
     
     switch(input$tree_input_type,
            "Parsimony Ancestral Reconstruction" = actionButton("geodatabuilder",
-                                      label = "Edit Geodata",
-                                      icon = icon("wrench", lib = "font-awesome"),
-                                      class = "btn-secondary",
-                                      style = 'padding-top:1px;padding-bottom:1px;margin-top:20px'),
+                                                               label = "Edit Geodata",
+                                                               icon = icon("wrench", lib = "font-awesome"),
+                                                               class = "btn-secondary",
+                                                               style = 'padding-top:1px;padding-bottom:1px;margin-top:20px'),
            
            "BEAST Phylogeography" = actionButton("geodatabuilder",
-                                      label = "Edit Geodata",
-                                      icon = icon("wrench", lib = "font-awesome"),
-                                      class = "btn-secondary",
-                                      style = 'padding-top:1px;padding-bottom:1px;margin-top:20px'),
+                                                 label = "Edit Geodata",
+                                                 icon = icon("wrench", lib = "font-awesome"),
+                                                 class = "btn-secondary",
+                                                 style = 'padding-top:1px;padding-bottom:1px;margin-top:20px'),
            
            "Create Neighbor-Joining Tree" = actionButton("geodatabuilder",
                                                          label = "Edit Geodata",
@@ -502,8 +520,8 @@ server <- function(input, output, session) {
     
     switch(input$tree_input_type,
            "Parsimony Ancestral Reconstruction" = fileInput('geodatafile',
-                                   label = '3b. Choose your Geodata File',
-                                   accept = c('text/csv', 'text/plain', '.csv', '.txt')),
+                                                            label = '3b. Choose your Geodata File',
+                                                            accept = c('text/csv', 'text/plain', '.csv', '.txt')),
            
            "BEAST Phylogeography" = fileInput('geodatafile',
                                               label = '3c. Choose your Geodata File',
@@ -537,18 +555,18 @@ server <- function(input, output, session) {
   availablecolumns <- eventReactive(input$getlistbutton, {
     if(input$tree_input_type == "Parsimony Ancestral Reconstruction"){
       validate(need(input$csvfile != "",  "\n3a. Please upload the accompanying metadata file."))
-      availablecolumns <- listStates(metadata = rv$metadata,
-                                     treeType = "parsimonious")
+      availablecolumns <- list_states(metadata = rv$metadata,
+                                      treeType = "parsimonious")
       
     } else if(input$tree_input_type == "BEAST Phylogeography"){
       validate(need(input$treefile != "", "\n2. Please upload a tree file."))
-      availablecolumns <- listStates(treedata = treedata(),
-                                     treeType = "bayesian")
+      availablecolumns <- list_states(treedata = treedata(),
+                                      treeType = "bayesian")
       
     } else if(input$tree_input_type == "Create Neighbor-Joining Tree"){
       validate(need(input$csvfile != "",  "\n3a. Please upload the accompanying metadata file."))
-      availablecolumns <- listStates(metadata = rv$metadata,
-                                     treeType = "nj")
+      availablecolumns <- list_states(metadata = rv$metadata,
+                                      treeType = "nj")
     }
   })
   
@@ -565,23 +583,23 @@ server <- function(input, output, session) {
     )
   })
   
-
+  
   ## Show/Hide Central Metric Selector button
   output$metricradioswitch <- renderUI({
     if (is.null(input$tree_input_type))
       return()
     
     switch(input$tree_input_type,
-         "Parsimony Ancestral Reconstruction" = selectInput("metricradio",
-                                   label ="5. Pick your Centrality Metric",
-                                   choices = list("Indegree" = 1,
-                                                  "Outdegree" = 2,
-                                                  "Betweenness" = 3,
-                                                  "Closeness" = 4,
-                                                  "Degree" = 5,
-                                                  "Source Hub Ratio" = 6),
-                                   selected = 1),
-                                                  
+           "Parsimony Ancestral Reconstruction" = selectInput("metricradio",
+                                                              label ="5. Pick your Centrality Metric",
+                                                              choices = list("Indegree" = 1,
+                                                                             "Outdegree" = 2,
+                                                                             "Betweenness" = 3,
+                                                                             "Closeness" = 4,
+                                                                             "Degree" = 5,
+                                                                             "Source Hub Ratio" = 6),
+                                                              selected = 1),
+           
            
            "BEAST Phylogeography" = selectInput("metricradio",
                                                 label ="5. Pick your Centrality Metric",
@@ -648,7 +666,7 @@ server <- function(input, output, session) {
   ## Load in metadata
   observeEvent(input$csvfile, {
     rv$metadata <- readr::read_csv(input$csvfile$datapath, col_names = TRUE)
-    })
+  })
   
   ## Load in geodata
   observeEvent(input$geodatafile, {
@@ -668,16 +686,16 @@ server <- function(input, output, session) {
       validate(
         need(input$columnselection != "",  "\n4a. List the states from your metadata and pick one to use."),
         need(input$columnselection %in% strainhub:::getUsableColumns(treedata = treedata(),
-                                                         metadata = rv$metadata),
+                                                                     metadata = rv$metadata),
              "\n4b. Make sure to select a state column. (Must not contain all identical values.)")
       )
       
-      graph <- makeTransNet(treedata = treedata(),
-                            metadata = rv$metadata,
-                            columnSelection = input$columnselection,
-                            # columnSelection = input$columnselection_row_last_clicked,
-                            centralityMetric = input$metricradio,
-                            treeType = "parsimonious")
+      graph <- make_transnet(treedata = treedata(),
+                             metadata = rv$metadata,
+                             columnSelection = input$columnselection,
+                             # columnSelection = input$columnselection_row_last_clicked,
+                             centralityMetric = input$metricradio,
+                             treeType = "parsimonious")
       # height = paste0(0.75*session$clientData$output_graph_width,"px")
       
     } else if(input$tree_input_type == "BEAST Phylogeography"){
@@ -691,14 +709,14 @@ server <- function(input, output, session) {
       #        "\n4b. Make sure to select a state column. (Must not contain all identical values.)")
       # )
       
-
-      graph <-  makeTransNet(treedata = treedata(),
-                             columnSelection = input$columnselection,
-                             # columnSelection = input$columnselection_row_last_clicked,
-                             centralityMetric = input$metricradio,
-                             threshold = input$threshold,
-                             threshold2 = input$posterior,
-                             treeType = "bayesian")
+      
+      graph <-  make_transnet(treedata = treedata(),
+                              columnSelection = input$columnselection,
+                              # columnSelection = input$columnselection_row_last_clicked,
+                              centralityMetric = input$metricradio,
+                              threshold = input$threshold,
+                              threshold2 = input$posterior,
+                              treeType = "bayesian")
       # height = paste0(0.75*session$clientData$output_graph_width,"px")
       
     } else if(input$tree_input_type == "Create Neighbor-Joining Tree"){
@@ -716,7 +734,7 @@ server <- function(input, output, session) {
         #      "\n4b. Make sure to select a state column. (Must not contain all identical values.)")
       )
       
-      graph <- makeTransNet(treedata = treedata(),
+      graph <- make_transnet(treedata = treedata(),
                              metadata = rv$metadata,
                              columnSelection = input$columnselection,
                              # columnSelection = input$columnselection_row_last_clicked,
@@ -731,7 +749,7 @@ server <- function(input, output, session) {
       validate(
         need(input$treefile != "", "\n2. Please upload a StrainHub-generated RDS file.")
       )
-
+      
       graphinput <- readRDS(input$graphfile$datapath)
       
       validate(
@@ -750,7 +768,7 @@ server <- function(input, output, session) {
                                                                                  scaleFactor = 0.75)),
                                                          arrowStrikethrough = FALSE))})
   
-
+  
   output$exportplothtml <- downloadHandler(
     filename = function() {
       paste0(input$treefile, "_StrainHub_network.html")
@@ -811,7 +829,7 @@ server <- function(input, output, session) {
       paste0(input$treefile, "_StrainHub_map.png")
     },
     content = function(file) {
-
+      
       m <- make_map(graph(),
                     rv$geodata,
                     input$columnselection,
@@ -830,7 +848,7 @@ server <- function(input, output, session) {
       
       ## 4K:
       # webshot::webshot("tempmap.html", file = "tempmap.png", vwidth = 3840, vheight = 2160, zoom = 2)
-
+      
       file.copy("tempmap.png", file)
     }
   )
@@ -864,7 +882,7 @@ server <- function(input, output, session) {
   output$treepreview <- eventReactive(input$plotbutton, {
     output$treepreview <- renderPlotly({
       if (input$tree_input_type == "Parsimony Ancestral Reconstruction"){
-
+        
         treepreview <- treedata()
         colorby <- input$columnselection
         
@@ -905,9 +923,9 @@ server <- function(input, output, session) {
       } else if(input$tree_input_type == "Create Neighbor-Joining Tree"){
         
         treepreview <- strainhub:::NJ_build_collapse(dna = treedata(),
-                                         accession = input$rootselect,
-                                         bootstrapValue = input$bootstrapvalue)
-
+                                                     accession = input$rootselect,
+                                                     bootstrapValue = input$bootstrapvalue)
+        
         colorby <- input$columnselection
         
         import::from(ggtree, `%<+%`, ggtree)
@@ -951,7 +969,7 @@ server <- function(input, output, session) {
                  showPoints = as.logical(input$mapshowpoints),
                  pointColor = input$pointColorPicker,
                  pointOpacity = input$pointOpacityPicker)
-        })
+      })
       
     } else if(input$tree_input_type == "BEAST Phylogeography"){
       validate(
@@ -970,7 +988,7 @@ server <- function(input, output, session) {
                  showPoints = as.logical(input$mapshowpoints),
                  pointColor = input$pointColorPicker,
                  pointOpacity = input$pointOpacityPicker)
-        })
+      })
       
     } else if(input$tree_input_type == "Create Neighbor-Joining Tree"){
       validate(
@@ -989,13 +1007,13 @@ server <- function(input, output, session) {
                  showPoints = as.logical(input$mapshowpoints),
                  pointColor = input$pointColorPicker,
                  pointOpacity = input$pointOpacityPicker)
-        })
+      })
     }
   })
   
   
   observeEvent(input$plotbutton, {
-  # observe({
+    # observe({
     if (input$tree_input_type == "Parsimony Ancestral Reconstruction"){
       validate(
         need(input$treefile != "", "\n1. Please upload a tree phy file."),
@@ -1013,7 +1031,7 @@ server <- function(input, output, session) {
       )
     }
     
-
+    
     rv$metrics <- read.csv("StrainHub_metrics.csv")
     
     output$metricstable <- DT::renderDataTable(DT::datatable(rv$metrics),
