@@ -2,6 +2,11 @@
 
 ## Release Updates
 
+### v2.0.0
+- Updated names of functions (makeTransNet -> make_transnet, listStates -> list_states).
+- Replaced `hashmap` dependency to add R 4.X support.
+- Updated UI in Shiny app to use Bootstrap 5
+
 ### v1.1.2
 - Added the ability to export and import StrainHub networks as RDS files.
 

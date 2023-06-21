@@ -1,5 +1,5 @@
-#' @export makeTransNet
-#' @export listStates
+#' @export make_transnet
+#' @export list_states
 #' @export make_map
 
 
@@ -337,8 +337,8 @@ getMetadata <- function(fileName) {
   returnList
 }
 #############################
-#' @name listStates
-#' @title listStates
+#' @name list_states
+#' @title list_states
 #' @description Returns data frame of available character states in the input file.
 #' @param treedata Input tree data.
 #' @param metadata Input metadata. (Must have the first column labeled "Accession" and then all other columns can be custom.)
@@ -347,7 +347,7 @@ getMetadata <- function(fileName) {
 #############################
 
 
-listStates <- function(treedata, metadata = NULL, treeType = "parsimonious"){
+list_states <- function(treedata, metadata = NULL, treeType = "parsimonious"){
   if(treeType == "parsimonious"){
 
     listofcolumns <- data.frame(`Index` = 1:length(colnames(metadata)),
@@ -440,8 +440,8 @@ hash_find <- function(hm, key) {
 #############################
 
 #############################
-#' @name makeTransNet
-#' @title makeTransNet
+#' @name make_transnet
+#' @title make_transnet
 #' @description Creates the network graph object. Use print(graph) to display.
 #' @param treedata Input tree data.
 #' @param metadata Corresponding metadata.
@@ -470,7 +470,7 @@ hash_find <- function(hm, key) {
 #'
 #############################
 
-makeTransNet <- function(treedata, metadata = NULL, columnSelection, centralityMetric, threshold = 0.9, threshold2 = 0.9, bootstrapValue = NULL, treeType = "parsimonious", rootSelection = NULL, metricsOutputFile = "StrainHub_metrics.csv", as.json = FALSE){
+make_transnet <- function(treedata, metadata = NULL, columnSelection, centralityMetric, threshold = 0.9, threshold2 = 0.9, bootstrapValue = NULL, treeType = "parsimonious", rootSelection = NULL, metricsOutputFile = "StrainHub_metrics.csv", as.json = FALSE){
 
   if(treeType == "parsimonious"){
 
@@ -1334,9 +1334,9 @@ make_nj_map <- function(geodata, transmissionpath, linecolor = "red", circlecolo
 #' @name make_map
 #' @title make_map
 #' @description Creates a Leaflet map of the transmission network
-#' @param graph The VizNetwork graph object from the `makeTransNet` function.
+#' @param graph The VizNetwork graph object from the `make_transnet` function.
 #' @param geodata Input geo data. (First column must match the column selection in the network object, then Latitude and Longitude columns.)
-#' @param columnSelection The column selected previously from the `makeTransNet` function. (For example, "Country".)
+#' @param columnSelection The column selected previously from the `make_transnet` function. (For example, "Country".)
 #' @param basemapLayer The base map layer style. Any of the following styles from: https://esri.github.io/esri-leaflet/api-reference/layers/basemap-layer.html
 #'       (Default: "Imagery")
 #' @param hideArrowHead Boolean. Show directionality of lines (using arrows) on the network. (Default: FALSE)

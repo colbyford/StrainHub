@@ -19,11 +19,11 @@ make_map(
 )
 }
 \arguments{
-\item{graph}{The VizNetwork graph object from the `makeTransNet` function.}
+\item{graph}{The VizNetwork graph object from the `make_transnet` function.}
 
 \item{geodata}{Input geo data. (First column must match the column selection in the network object, then Latitude and Longitude columns.)}
 
-\item{columnSelection}{The column selected previously from the `makeTransNet` function. (For example, "Country".)}
+\item{columnSelection}{The column selected previously from the `make_transnet` function. (For example, "Country".)}
 
 \item{basemapLayer}{The base map layer style. Any of the following styles from: https://esri.github.io/esri-leaflet/api-reference/layers/basemap-layer.html
 (Default: "Imagery")}

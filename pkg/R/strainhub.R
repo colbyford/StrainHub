@@ -10,8 +10,6 @@
 #'
 #' @author Colby T. Ford, \email{colby.ford@@uncc.edu} \url{https://orcid.org/0000-0002-7859-3622}
 #' @author Adriano Schneider
-#' @author John Williams
-#' @author Mike Cioce
 #'
 #' @import treeio
 #' @import ggplot2
@@ -41,8 +39,8 @@
 #' @import markdown
 #' @import rmarkdown
 #' @import leaflet
-#' @import ggtree
-#' @import plotly
+# @import ggtree
+# @import plotly
 #'
 #' @references
 #' \itemize{

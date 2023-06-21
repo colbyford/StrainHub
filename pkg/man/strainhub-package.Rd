@@ -24,10 +24,6 @@ StrainHub works to generate a pathogen transmission network graph utilizing geno
 Colby T. Ford, \email{colby.ford@uncc.edu} \url{https://orcid.org/0000-0002-7859-3622}
 
 Adriano Schneider
-
-John Williams
-
-Mike Cioce
 }
 \keyword{bioinformatics}
 \keyword{genomics}
