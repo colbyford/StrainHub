@@ -27,17 +27,17 @@ geodata <- readr::read_csv("../../data/parsimonious/chikv/chikv_geo.csv", col_na
 
 
 ## Check to See Which States are available by which to generate the network
-listStates(treedata,
-           metadata,
-           treeType = "parsimonious")
+list_states(treedata,
+            metadata,
+            treeType = "parsimonious")
 
 
 ## Make the Transmission Network
-graph <- makeTransNet(treedata,
-                      metadata,
-                      columnSelection = "Country",
-                      centralityMetric = 6,
-                      treeType = "parsimonious")
+graph <- make_transnet(treedata,
+                       metadata,
+                       columnSelection = "Country",
+                       centralityMetric = 6,
+                       treeType = "parsimonious")
 
 print(graph)
 
@@ -66,9 +66,9 @@ library(strainhub)
 treedata <- read.csv("../data/dataframe/dataframe.csv", stringsAsFactors = FALSE)
 
 ## Make the Transmission Network
-graph <- makeTransNet(treedata,
-                      centralityMetric = 6,
-                      treeType = "dataframe")
+graph <- make_transnet(treedata,
+                       centralityMetric = 6,
+                       treeType = "dataframe")
 ```
 
 ## Customizing your Transmission Networks
