@@ -602,7 +602,7 @@ make_transnet <- function(treedata, metadata = NULL, columnSelection, centrality
     nodes <- data.frame(id = 1:length(metastates),
                         label = metastates) #, fixed = list(x = T, y = T))
 
-    igraph.Object <- graph.data.frame(edges,
+    igraph.Object <- igraph::graph_from_data_frame(edges,
                                       directed = T,
                                       vertices = nodes)
   } else if(treeType == "bayesian"){
@@ -688,7 +688,7 @@ make_transnet <- function(treedata, metadata = NULL, columnSelection, centrality
       select(id_org, id_dst, value)
     names(edges) <- c("from", "to", "value")
 
-    igraph.Object <- graph.data.frame(edges,
+    igraph.Object <- igraph::graph_from_data_frame(edges,
                                       directed = T,
                                       vertices = nodes)
   } else if(treeType == "nj"){
@@ -818,7 +818,7 @@ make_transnet <- function(treedata, metadata = NULL, columnSelection, centrality
     nodes <- data.frame(id = 1:length(metastates),
                         label = metastates) #, fixed = list(x = T, y = T))
 
-    igraph.Object <- graph.data.frame(edges,
+    igraph.Object <- igraph::graph_from_data_frame(edges,
                                       directed = T,
                                       vertices = nodes)
   } else if(treeType == "dataframe"){
@@ -851,7 +851,7 @@ make_transnet <- function(treedata, metadata = NULL, columnSelection, centrality
     nodes <- data.frame(id = 1:length(metastates),
                         label = metastates) #, fixed = list(x = T, y = T))
 
-    igraph.Object <- graph.data.frame(edges,
+    igraph.Object <- igraph::graph_from_data_frame(edges,
                                       directed = T,
                                       vertices = nodes)
   }

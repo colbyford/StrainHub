@@ -1,12 +1,48 @@
 Package: strainhub
 Type: Package
 Title: StrainHub - Phylogenetic Network Visualization
-Version: 2.0.0
+Version: 2.1.0
+Depends: R (>= 4.1.0)
+Imports:
+    adegenet,
+    ape,
+    castor,
+    dplyr,
+    DT,
+    hash,
+    htmltools,
+    htmlwidgets,
+    igraph (>= 1.3.0),
+    jsonlite,
+    leaflet,
+    magrittr,
+    parallel,
+    phangorn,
+    plyr,
+    randomcoloR,
+    rhandsontable,
+    stringr,
+    tibble,
+    treeio,
+    visNetwork
+Suggests:
+    ade4,
+    colourpicker,
+    data.table,
+    ggplot2,
+    knitr,
+    markdown,
+    network,
+    readr,
+    rmarkdown,
+    testthat (>= 3.0.0)
 Author: Colby T. Ford
 Maintainer: Colby T. Ford <colby.ford@uncc.edu>
-Description: StrainHub works to generate a pathogen transmission network graph utilizing genomic data and calculates importance of network based on centrality metrics.
-URL: https://github.com/colbyford/StrainHub (site)
-License: Apache 2.0
+Description: StrainHub works to generate a pathogen transmission network graph
+    utilizing genomic data and calculates importance of network based on
+    centrality metrics.
+URL: https://github.com/colbyford/StrainHub
+License: Apache-2.0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

@@ -12,39 +12,28 @@
 #' @author Adriano Schneider
 #'
 #' @import treeio
-#' @import ggplot2
 #' @import adegenet
-#' @import ade4
-#' @import knitr
 #' @import dplyr
-#' @import readr
 #' @import ape
 #' @import castor
 #' @import visNetwork
-# @import hashmap
 #' @import hash
-#' @import plyr
-#' @import network
+#' @import phangorn
+#' @import parallel
 #' @import igraph
-#' @import data.table
-#' @import DT
-#' @import rhandsontable
+#' @import plyr
 #' @import magrittr
 #' @import htmlwidgets
 #' @import htmltools
-# @import globe4r
 #' @import randomcoloR
-#' @import colourpicker
-#' @import rbokeh
-#' @import markdown
-#' @import rmarkdown
 #' @import leaflet
-# @import ggtree
-# @import plotly
+#' @import jsonlite
+#' @import stringr
+#' @import tibble
 #'
 #' @references
 #' \itemize{
-#' \item Adriano de Bernardi Schneider, Colby T Ford, Reilly Hostager, John Williams, Michael Cioce, Ümit V Çatalyürek, Joel O Wertheim, Daniel Janies, StrainHub: A phylogenetic tool to construct pathogen transmission networks, Bioinformatics, btz646, https://doi.org/10.1093/bioinformatics/btz646
+#' \item Adriano de Bernardi Schneider, Colby T Ford, Reilly Hostager, John Williams, Michael Cioce, Umit V Catalyurek, Joel O Wertheim, Daniel Janies, StrainHub: A phylogenetic tool to construct pathogen transmission networks, Bioinformatics, btz646, https://doi.org/10.1093/bioinformatics/btz646
 #' }
 #'
 #' @seealso \url{https://github.com/colbyford/StrainHub}
