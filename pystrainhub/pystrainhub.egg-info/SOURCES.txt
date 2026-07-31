@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+pystrainhub/__init__.py
+pystrainhub/parsimony.py
+pystrainhub/strainhub.py
+pystrainhub.egg-info/PKG-INFO
+pystrainhub.egg-info/SOURCES.txt
+pystrainhub.egg-info/dependency_links.txt
+pystrainhub.egg-info/requires.txt
+pystrainhub.egg-info/top_level.txt
+tests/test_strainhub.py
