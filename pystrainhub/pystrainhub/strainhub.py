@@ -487,7 +487,19 @@ def _bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 def _compute_centrality_metrics(G: nx.DiGraph, metastates: list) -> pd.DataFrame:
     """Compute all six centrality metrics and return a metrics DataFrame."""
+    _METRIC_COLS = [
+        "Metastates",
+        "Degree Centrality",
+        "Indegree Centrality",
+        "Outdegree Centrality",
+        "Betweenness Centrality",
+        "Closeness Centrality",
+        "Source Hub Ratio",
+    ]
+
     sorted_nodes = sorted(G.nodes())
+    if not sorted_nodes:
+        return pd.DataFrame(columns=_METRIC_COLS)
 
     indegree = dict(G.in_degree())
     outdegree = dict(G.out_degree())
@@ -546,7 +558,11 @@ def _build_pyvis_network(
         centrality_metric, ("Source Hub Ratio", "Transmission Network")
     )
 
-    node_metric = dict(zip(metrics["Metastates"], metrics[metric_col]))
+    node_metric: dict = (
+        dict(zip(metrics["Metastates"], metrics[metric_col]))
+        if not metrics.empty
+        else {}
+    )
 
     net = pvnet.Network(
         directed=True,

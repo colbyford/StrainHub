@@ -59,6 +59,51 @@ def dataframe_input():
     )
 
 
+@pytest.fixture()
+def simple_fasta(tmp_path):
+    """Write a tiny 4-sequence FASTA alignment and return the file path."""
+    content = (
+        ">A\nATCGATCGATCG\n"
+        ">B\nATCGATCGATCG\n"
+        ">C\nTTCGATCGATCA\n"
+        ">D\nTTCGATCGATCA\n"
+    )
+    p = tmp_path / "alignment.fasta"
+    p.write_text(content)
+    return str(p)
+
+
+@pytest.fixture()
+def beast_nexus(tmp_path):
+    """Write a minimal BEAST-annotated NEXUS tree and return the file path."""
+    content = """\
+#NEXUS
+Begin taxa;
+    Dimensions ntax=4;
+    Taxlabels A B C D;
+End;
+
+Begin trees;
+    Translate
+        1 A,
+        2 B,
+        3 C,
+        4 D
+    ;
+    tree STATE_0 [&R] = (((1[&location="USA",location.prob=0.95,posterior=0.99]:0.1,\
+2[&location="USA",location.prob=0.95,posterior=0.99]:0.1)\
+[&location="USA",location.prob=0.95,posterior=0.99]:0.2,\
+(3[&location="UK",location.prob=0.95,posterior=0.99]:0.1,\
+4[&location="UK",location.prob=0.95,posterior=0.99]:0.1)\
+[&location="UK",location.prob=0.95,posterior=0.99]:0.2)\
+[&location="USA",location.prob=0.95,posterior=1.0]:0.0);
+End;
+"""
+    p = tmp_path / "beast.nexus"
+    p.write_text(content)
+    return str(p)
+
+
 # ---------------------------------------------------------------------------
 # list_states
 # ---------------------------------------------------------------------------
@@ -90,6 +135,18 @@ class TestListStates:
         tree = Phylo.read(simple_newick, "newick")
         with pytest.raises(ValueError, match="metadata is required"):
             list_states(tree, None, tree_type="parsimonious")
+
+    def test_bayesian_returns_annotation_columns(self, beast_nexus):
+        pytest.importorskip("dendropy")
+        from pystrainhub import list_states
+
+        result = list_states(beast_nexus, tree_type="bayesian")
+
+        assert isinstance(result, pd.DataFrame)
+        assert list(result.columns) == ["Index", "Column"]
+        # "location" should appear; "location.prob" should be filtered out
+        assert "location" in result["Column"].tolist()
+        assert not any(c.endswith(".prob") for c in result["Column"])
 
     def test_unknown_tree_type_raises(self, simple_metadata):
         from pystrainhub import list_states
@@ -266,6 +323,238 @@ class TestMakeTransnetDataframe:
         )
         labels = result["nodes"]["label"].tolist()
         assert labels == sorted(labels)
+
+
+# ---------------------------------------------------------------------------
+# make_transnet – nj
+# ---------------------------------------------------------------------------
+
+
+class TestMakeTransnetNJ:
+    def test_returns_dict_with_expected_keys(self, simple_fasta, simple_metadata):
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            simple_fasta,
+            simple_metadata,
+            column_selection="Country",
+            centrality_metric=6,
+            tree_type="nj",
+            metrics_output_file="",
+        )
+
+        assert isinstance(result, dict)
+        for key in ("nodes", "edges", "metrics", "graph"):
+            assert key in result, f"Missing key: {key}"
+
+    def test_nodes_and_edges_are_dataframes(self, simple_fasta, simple_metadata):
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            simple_fasta,
+            simple_metadata,
+            column_selection="Country",
+            centrality_metric=1,
+            tree_type="nj",
+            metrics_output_file="",
+        )
+        assert isinstance(result["nodes"], pd.DataFrame)
+        assert isinstance(result["edges"], pd.DataFrame)
+        assert "id" in result["nodes"].columns
+        assert "label" in result["nodes"].columns
+
+    def test_state_labels_from_metadata(self, simple_fasta, simple_metadata):
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            simple_fasta,
+            simple_metadata,
+            column_selection="Country",
+            centrality_metric=1,
+            tree_type="nj",
+            metrics_output_file="",
+        )
+        labels = sorted(result["nodes"]["label"].tolist())
+        expected = sorted(simple_metadata["Country"].unique().tolist())
+        assert labels == expected
+
+    def test_metrics_contain_all_six_metrics(self, simple_fasta, simple_metadata):
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            simple_fasta,
+            simple_metadata,
+            column_selection="Country",
+            centrality_metric=0,
+            tree_type="nj",
+            metrics_output_file="",
+        )
+        expected_cols = {
+            "Metastates",
+            "Degree Centrality",
+            "Indegree Centrality",
+            "Outdegree Centrality",
+            "Betweenness Centrality",
+            "Closeness Centrality",
+            "Source Hub Ratio",
+        }
+        assert expected_cols.issubset(set(result["metrics"].columns))
+
+    def test_as_json_returns_string(self, simple_fasta, simple_metadata):
+        import json
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            simple_fasta,
+            simple_metadata,
+            column_selection="Country",
+            centrality_metric=1,
+            tree_type="nj",
+            metrics_output_file="",
+            as_json=True,
+        )
+        assert isinstance(result, str)
+        parsed = json.loads(result)
+        assert "nodes" in parsed
+        assert "edges" in parsed
+        assert "metrics" in parsed
+
+    def test_root_selection(self, simple_fasta, simple_metadata):
+        from pystrainhub import make_transnet
+
+        # Should not raise when root_selection is provided
+        result = make_transnet(
+            simple_fasta,
+            simple_metadata,
+            column_selection="Country",
+            centrality_metric=1,
+            tree_type="nj",
+            root_selection="A",
+            metrics_output_file="",
+        )
+        assert isinstance(result, dict)
+        assert not result["nodes"].empty
+
+
+# ---------------------------------------------------------------------------
+# make_transnet – bayesian
+# ---------------------------------------------------------------------------
+
+
+class TestMakeTransnetBayesian:
+    def test_returns_dict_with_expected_keys(self, beast_nexus):
+        pytest.importorskip("dendropy")
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=6,
+            tree_type="bayesian",
+            metrics_output_file="",
+        )
+
+        assert isinstance(result, dict)
+        for key in ("nodes", "edges", "metrics", "graph"):
+            assert key in result, f"Missing key: {key}"
+
+    def test_nodes_and_edges_are_dataframes(self, beast_nexus):
+        pytest.importorskip("dendropy")
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=1,
+            tree_type="bayesian",
+            metrics_output_file="",
+        )
+        assert isinstance(result["nodes"], pd.DataFrame)
+        assert isinstance(result["edges"], pd.DataFrame)
+        assert "id" in result["nodes"].columns
+        assert "label" in result["nodes"].columns
+
+    def test_state_labels_from_annotations(self, beast_nexus):
+        pytest.importorskip("dendropy")
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=1,
+            tree_type="bayesian",
+            metrics_output_file="",
+        )
+        labels = sorted(result["nodes"]["label"].tolist())
+        assert "UK" in labels
+        assert "USA" in labels
+
+    def test_metrics_contain_all_six_metrics(self, beast_nexus):
+        pytest.importorskip("dendropy")
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=0,
+            tree_type="bayesian",
+            metrics_output_file="",
+        )
+        expected_cols = {
+            "Metastates",
+            "Degree Centrality",
+            "Indegree Centrality",
+            "Outdegree Centrality",
+            "Betweenness Centrality",
+            "Closeness Centrality",
+            "Source Hub Ratio",
+        }
+        assert expected_cols.issubset(set(result["metrics"].columns))
+
+    def test_threshold_filters_low_probability(self, beast_nexus):
+        pytest.importorskip("dendropy")
+        from pystrainhub import make_transnet
+
+        # With a very high threshold, low-confidence edges should be excluded
+        result_strict = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=1,
+            tree_type="bayesian",
+            threshold=0.99,
+            threshold2=0.99,
+            metrics_output_file="",
+        )
+        result_lenient = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=1,
+            tree_type="bayesian",
+            threshold=0.5,
+            threshold2=0.5,
+            metrics_output_file="",
+        )
+        # Lenient threshold should produce at least as many edges as strict
+        assert len(result_lenient["edges"]) >= len(result_strict["edges"])
+
+    def test_as_json_returns_string(self, beast_nexus):
+        import json
+        pytest.importorskip("dendropy")
+        from pystrainhub import make_transnet
+
+        result = make_transnet(
+            beast_nexus,
+            column_selection="location",
+            centrality_metric=1,
+            tree_type="bayesian",
+            metrics_output_file="",
+            as_json=True,
+        )
+        assert isinstance(result, str)
+        parsed = json.loads(result)
+        assert "nodes" in parsed
+        assert "edges" in parsed
+        assert "metrics" in parsed
 
 
 # ---------------------------------------------------------------------------
