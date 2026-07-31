@@ -1,0 +1,12 @@
+# Core
+biopython>=1.79
+networkx>=3.0
+pandas>=1.5
+numpy>=1.23
+
+# Visualization (optional but recommended)
+pyvis>=0.3
+folium>=0.14
+
+# Bayesian tree support (optional)
+dendropy>=4.5
